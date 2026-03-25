@@ -10,7 +10,7 @@ services:
   # PostgreSQL
   # ---------------------------------------------------------------------------- #
   postgres:
-    container_name: "mom_bp_postgres"
+    container_name: "catalog-service"
     image: "postgres:16-alpine"
     restart: "unless-stopped"
     ports:
