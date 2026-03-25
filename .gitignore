@@ -1,0 +1,29 @@
+# Build outputs
+bin/
+*.exe
+*.out
+*.test
+
+# Dependencies
+vendor/
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.bak
+
+# Logs and temp
+*.log
+*.tmp
+
+# Coverage
+coverage.out
+
+# macOS
+.DS_Store
+
+# ВАЖНО: В реальных проектах .env ДОЛЖЕН быть в .gitignore!
+# Здесь он НЕ игнорируется только в рамках учебного проекта,
+# чтобы студенты могли видеть пример конфигурации.
+.env
