@@ -9,7 +9,6 @@ type Duration struct {
 func (d *Duration) UnmarshalText(text []byte) error {
 	res, err := time.ParseDuration(string(text))
 	if err != nil {
-
 		return err
 	}
 	d.Duration = res
