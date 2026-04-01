@@ -1,6 +1,8 @@
 package util
 
-import "errors"
+import (
+	"errors"
+)
 
 func ReplaceErr1(what, from, to error) error {
 	switch {
@@ -10,4 +12,3 @@ func ReplaceErr1(what, from, to error) error {
 		return what
 	}
 }
-	
