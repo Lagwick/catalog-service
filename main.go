@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 
-	rcpostgres "github.com/Lagwick/catalog-service/internal/app/repository/conn/postgres"
 	"github.com/rs/zerolog/log"
 
 	"github.com/Lagwick/catalog-service/internal/app/config"
 	rhealth "github.com/Lagwick/catalog-service/internal/app/handler/http/health"
 	rprocessor "github.com/Lagwick/catalog-service/internal/app/processor/http"
+	rcpostgres "github.com/Lagwick/catalog-service/internal/app/repository/conn/postgres"
 )
 
 func main() {

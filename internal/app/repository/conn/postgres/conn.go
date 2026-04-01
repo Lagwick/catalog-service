@@ -70,7 +70,6 @@ func NewConn(ctx context.Context, cfg section.RepositoryPostgres) (*Client, erro
 		rawBunDB: bunDB,
 		cfg:      cfg,
 	}, nil
-
 }
 
 func (c *Client) Migrate(ctx context.Context) (oldVer, newVer int64, err error) {
