@@ -1,42 +1,21 @@
-# docker-compose.yml
-# Локальное окружение для разработки
-#
-# Запуск:    docker compose up -d
-# Остановка: docker compose down
-# Логи:      docker compose logs -f
-
 services:
-  # ---------------------------------------------------------------------------- #
-  # PostgreSQL
-  # ---------------------------------------------------------------------------- #
   postgres:
-    container_name: "catalog-service"
-    image: "postgres:16-alpine"
-    restart: "unless-stopped"
     ports:
-      - "5432:5432"
+      - "5429:5432"
+    container_name: "mom_blplt_postgres"
+    image: "postgres:15.1-alpine"
+    restart: "unless-stopped"
     environment:
-      POSTGRES_USER: "testuser"
-      POSTGRES_PASSWORD: "testpass"
-      POSTGRES_DB: "testdb"
+      POSTGRES_USER: "test_user"
+      POSTGRES_PASSWORD: "test_password"
+      POSTGRES_DB: "test_db"
     volumes:
-      - "mom_bp_postgres_data:/var/lib/postgresql/data"
+      - "mom_blplt_postgres_data:/var/lib/postgresql/data"
     networks:
-      - "mom_bp_net"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U testuser -d testdb"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - "mom_blplt_net"
 
-# ---------------------------------------------------------------------------- #
-# Volumes
-# ---------------------------------------------------------------------------- #
 volumes:
-  mom_bp_postgres_data: {}
+  mom_blplt_postgres_data: { }
 
-# ---------------------------------------------------------------------------- #
-# Networks
-# ---------------------------------------------------------------------------- #
 networks:
-  mom_bp_net: {}
+  mom_blplt_net: { }
