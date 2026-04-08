@@ -1,14 +1,11 @@
 package pcategory
 
 import (
-	// 1. standard — стандартная библиотека
 	"context"
 	"database/sql"
 
-	// 2. default — внешние пакеты
 	"github.com/google/uuid"
 
-	// 3. prefix(github.com/Lagwick/catalog-service) — внутренние пакеты
 	"github.com/Lagwick/catalog-service/internal/app/entity"
 	"github.com/Lagwick/catalog-service/internal/app/repository"
 	rcpostgres "github.com/Lagwick/catalog-service/internal/app/repository/conn/postgres"
