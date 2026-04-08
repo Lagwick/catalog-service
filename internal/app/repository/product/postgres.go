@@ -6,9 +6,9 @@ import (
 
 	"github.com/google/uuid"
 
-	rcpostgres "github.com/Lagwick/catalog-service/internal/app/repository/conn/postgres"
 	"github.com/Lagwick/catalog-service/internal/app/entity"
 	"github.com/Lagwick/catalog-service/internal/app/repository"
+	rcpostgres "github.com/Lagwick/catalog-service/internal/app/repository/conn/postgres"
 	"github.com/Lagwick/catalog-service/internal/app/util"
 )
 
@@ -36,12 +36,19 @@ func (r *repoPg) GetByGUID(ctx context.Context, guid uuid.UUID) (entity.Product,
 }
 
 func (r *repoPg) Update(ctx context.Context, product entity.Product) error {
-	result, err := r.NewUpdate().Model(&product).WherePK().ExcludeColumn("id", "created_at").Exec(ctx)
+	result, err := r.NewUpdate().
+		Model(&product).
+		WherePK().
+		ExcludeColumn("id", "created_at").
+		Exec(ctx)
 	return rcpostgres.UpdateErr(result, err)
 }
 
 func (r *repoPg) Delete(ctx context.Context, guid uuid.UUID) error {
-	_, err := r.NewDelete().Model((*entity.Product)(nil)).Where("guid = ?", guid).Exec(ctx)
+	_, err := r.NewDelete().
+		Model((*entity.Product)(nil)).
+		Where("guid = ?", guid).
+		Exec(ctx)
 	return rcpostgres.DeleteErr(err)
 }
 
@@ -56,6 +63,7 @@ func (r *repoPg) List(ctx context.Context, name *string, categoryGUID *uuid.UUID
 	if categoryGUID != nil {
 		query = query.Where("category_guid = ?", *categoryGUID)
 	}
+
 	err := query.Scan(ctx)
 	return products, err
 }

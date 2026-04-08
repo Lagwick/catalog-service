@@ -36,12 +36,19 @@ func (r *repoPg) GetByGUID(ctx context.Context, guid uuid.UUID) (entity.Category
 }
 
 func (r *repoPg) Update(ctx context.Context, category entity.Category) error {
-	result, err := r.NewUpdate().Model(&category).WherePK().ExcludeColumn("id", "created_at").Exec(ctx)
+	result, err := r.NewUpdate().
+		Model(&category).
+		WherePK().
+		ExcludeColumn("id", "created_at").
+		Exec(ctx)
 	return rcpostgres.UpdateErr(result, err)
 }
 
 func (r *repoPg) Delete(ctx context.Context, guid uuid.UUID) error {
-	_, err := r.NewDelete().Model((*entity.Category)(nil)).Where("guid = ?", guid).Exec(ctx)
+	_, err := r.NewDelete().
+		Model((*entity.Category)(nil)).
+		Where("guid = ?", guid).
+		Exec(ctx)
 	return rcpostgres.DeleteErr(err)
 }
 
@@ -49,9 +56,11 @@ func (r *repoPg) List(ctx context.Context, name *string) ([]entity.Category, err
 	categories := make([]entity.Category, 0)
 
 	query := r.NewSelect().Model(&categories)
+
 	if name != nil {
 		query = query.Where("name = ?", *name)
 	}
+
 	err := query.Scan(ctx)
 	return categories, err
 }
