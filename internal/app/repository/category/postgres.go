@@ -6,11 +6,10 @@ import (
 
 	"github.com/google/uuid"
 
+	rcpostgres "github.com/Lagwick/catalog-service/internal/app/repository/conn/postgres"
 	"github.com/Lagwick/catalog-service/internal/app/entity"
 	"github.com/Lagwick/catalog-service/internal/app/repository"
 	"github.com/Lagwick/catalog-service/internal/app/util"
-
-	rcpostgres "github.com/Lagwick/catalog-service/internal/app/repository/conn/postgres"
 )
 
 type (
