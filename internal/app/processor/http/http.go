@@ -11,7 +11,7 @@ import (
 	rhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"
 )
 
-type httpProc struct {
+type HttpProc struct {
 	server http.Server
 	addr   string
 }
@@ -21,7 +21,7 @@ func NewHttp(
 	hCategory rhandler.Category,
 	hProduct rhandler.Product,
 	cfg section.ProcessorWebServer,
-) *httpProc {
+) *HttpProc {
 
 	r := mux.NewRouter()
 

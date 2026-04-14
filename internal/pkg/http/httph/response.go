@@ -8,7 +8,9 @@ import (
 func SendJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(data)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func SendEmpty(w http.ResponseWriter, status int) {
@@ -18,5 +20,7 @@ func SendEmpty(w http.ResponseWriter, status int) {
 func SendError(w http.ResponseWriter, status int, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+	if err := json.NewEncoder(w).Encode(map[string]string{"error": err.Error()}); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
