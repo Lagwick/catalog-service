@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gorilla/mux"
-	"github.com/rs/zerolog/log"
-
 	"github.com/Lagwick/catalog-service/internal/app/config/section"
 	rhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"
+	"github.com/gorilla/mux"
+	"github.com/rs/zerolog/log"
 )
 
 type HttpProc struct {
@@ -22,7 +21,6 @@ func NewHttp(
 	hProduct rhandler.Product,
 	cfg section.ProcessorWebServer,
 ) *HttpProc {
-
 	r := mux.NewRouter()
 
 	r.NotFoundHandler = http.HandlerFunc(handlerNotFound)

@@ -3,22 +3,17 @@ package main
 import (
 	"context"
 
-	"github.com/rs/zerolog/log"
-
 	"github.com/Lagwick/catalog-service/internal/app/config"
-
 	hcategory "github.com/Lagwick/catalog-service/internal/app/handler/http/category"
 	hhealth "github.com/Lagwick/catalog-service/internal/app/handler/http/health"
 	hproduct "github.com/Lagwick/catalog-service/internal/app/handler/http/product"
-
 	rprocessor "github.com/Lagwick/catalog-service/internal/app/processor/http"
-
 	pcategory "github.com/Lagwick/catalog-service/internal/app/repository/category"
 	rcpostgres "github.com/Lagwick/catalog-service/internal/app/repository/conn/postgres"
 	pproduct "github.com/Lagwick/catalog-service/internal/app/repository/product"
-
 	scategory "github.com/Lagwick/catalog-service/internal/app/service/category"
 	sproduct "github.com/Lagwick/catalog-service/internal/app/service/product"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {

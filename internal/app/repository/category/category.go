@@ -4,11 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
-
 	"github.com/Lagwick/catalog-service/internal/app/entity"
 	"github.com/Lagwick/catalog-service/internal/app/repository"
 	"github.com/Lagwick/catalog-service/internal/app/service"
+	"github.com/google/uuid"
 )
 
 type svc struct {
@@ -80,7 +79,6 @@ func (s *svc) Update(ctx context.Context, guid uuid.UUID, req entity.RequestCate
 }
 
 func (s *svc) Delete(ctx context.Context, guid uuid.UUID) error {
-
 	_, err := s.repoCategory.GetByGUID(ctx, guid)
 	if err != nil {
 		return err
