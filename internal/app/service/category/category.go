@@ -4,10 +4,11 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/Lagwick/catalog-service/internal/app/entity"
 	"github.com/Lagwick/catalog-service/internal/app/repository"
 	"github.com/Lagwick/catalog-service/internal/app/service"
-	"github.com/google/uuid"
 )
 
 type svc struct {

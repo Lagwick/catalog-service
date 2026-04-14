@@ -1,0 +1,170 @@
+warning: in the working copy of 'internal/app/config/config.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/app/handler/http/category/category.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/app/handler/http/product/product.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/app/processor/http/api_generic.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/app/processor/http/api_v1.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/app/processor/http/http.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/app/repository/category/category.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/app/repository/category/postgres.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/app/repository/conn/postgres/conn.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/app/repository/product/postgres.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/app/repository/repository.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/app/service/category/category.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/app/service/product/product.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'internal/app/service/service.go', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'main.go', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/internal/app/config/config.go b/internal/app/config/config.go[m
+[1mindex 5470237..90d8e9a 100644[m
+[1m--- a/internal/app/config/config.go[m
+[1m+++ b/internal/app/config/config.go[m
+[36m@@ -3,9 +3,10 @@[m [mpackage config[m
+ import ([m
+ 	"log"[m
+ [m
+[31m-	"github.com/Lagwick/catalog-service/internal/app/config/section"[m
+ 	"github.com/joho/godotenv"[m
+ 	"github.com/kelseyhightower/envconfig"[m
+[32m+[m
+[32m+[m	[32m"github.com/Lagwick/catalog-service/internal/app/config/section"[m
+ )[m
+ [m
+ type Config struct {[m
+[1mdiff --git a/internal/app/handler/http/category/category.go b/internal/app/handler/http/category/category.go[m
+[1mindex 6a2592c..79552a9 100644[m
+[1m--- a/internal/app/handler/http/category/category.go[m
+[1m+++ b/internal/app/handler/http/category/category.go[m
+[36m@@ -5,12 +5,13 @@[m [mimport ([m
+ 	"errors"[m
+ 	"net/http"[m
+ [m
+[32m+[m	[32m"github.com/google/uuid"[m
+[32m+[m	[32m"github.com/gorilla/mux"[m
+[32m+[m
+ 	"github.com/Lagwick/catalog-service/internal/app/entity"[m
+ 	rhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"[m
+ 	"github.com/Lagwick/catalog-service/internal/app/service"[m
+ 	"github.com/Lagwick/catalog-service/internal/pkg/http/httph"[m
+[31m-	"github.com/google/uuid"[m
+[31m-	"github.com/gorilla/mux"[m
+ )[m
+ [m
+ type handler struct {[m
+[1mdiff --git a/internal/app/handler/http/product/product.go b/internal/app/handler/http/product/product.go[m
+[1mindex 3234286..bb8e96c 100644[m
+[1m--- a/internal/app/handler/http/product/product.go[m
+[1m+++ b/internal/app/handler/http/product/product.go[m
+[36m@@ -5,12 +5,13 @@[m [mimport ([m
+ 	"errors"[m
+ 	"net/http"[m
+ [m
+[32m+[m	[32m"github.com/google/uuid"[m
+[32m+[m	[32m"github.com/gorilla/mux"[m
+[32m+[m
+ 	"github.com/Lagwick/catalog-service/internal/app/entity"[m
+ 	rhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"[m
+ 	"github.com/Lagwick/catalog-service/internal/app/service"[m
+ 	"github.com/Lagwick/catalog-service/internal/pkg/http/httph"[m
+[31m-	"github.com/google/uuid"[m
+[31m-	"github.com/gorilla/mux"[m
+ )[m
+ [m
+ type handler struct {[m
+[1mdiff --git a/internal/app/processor/http/api_generic.go b/internal/app/processor/http/api_generic.go[m
+[1mindex 89dc46c..a3b0e3d 100644[m
+[1m--- a/internal/app/processor/http/api_generic.go[m
+[1m+++ b/internal/app/processor/http/api_generic.go[m
+[36m@@ -3,8 +3,9 @@[m [mpackage rprocessor[m
+ import ([m
+ 	"net/http"[m
+ [m
+[31m-	rhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"[m
+ 	"github.com/gorilla/mux"[m
+[32m+[m
+[32m+[m	[32mrhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"[m
+ )[m
+ [m
+ func vGenericRegHealthCheck(r *mux.Router, h rhandler.Health) {[m
+[1mdiff --git a/internal/app/processor/http/api_v1.go b/internal/app/processor/http/api_v1.go[m
+[1mindex 8ba31a8..ef8f9a1 100644[m
+[1m--- a/internal/app/processor/http/api_v1.go[m
+[1m+++ b/internal/app/processor/http/api_v1.go[m
+[36m@@ -3,8 +3,9 @@[m [mpackage rprocessor[m
+ import ([m
+ 	"net/http"[m
+ [m
+[31m-	rhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"[m
+ 	"github.com/gorilla/mux"[m
+[32m+[m
+[32m+[m	[32mrhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"[m
+ )[m
+ [m
+ func v1RegCategoryHandler(r1 *mux.Router, h rhandler.Category) {[m
+[1mdiff --git a/internal/app/processor/http/http.go b/internal/app/processor/http/http.go[m
+[1mindex bb4b8d6..a0546f0 100644[m
+[1m--- a/internal/app/processor/http/http.go[m
+[1m+++ b/internal/app/processor/http/http.go[m
+[36m@@ -4,10 +4,11 @@[m [mimport ([m
+ 	"fmt"[m
+ 	"net/http"[m
+ [m
+[31m-	"github.com/Lagwick/catalog-service/internal/app/config/section"[m
+[31m-	rhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"[m
+ 	"github.com/gorilla/mux"[m
+ 	"github.com/rs/zerolog/log"[m
+[32m+[m
+[32m+[m	[32m"github.com/Lagwick/catalog-service/internal/app/config/section"[m
+[32m+[m	[32mrhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"[m
+ )[m
+ [m
+ type HTTPProc struct {[m
+[1mdiff --git a/internal/app/repository/category/category.go b/internal/app/repository/category/category.go[m
+[1mindex 8e1e106..11552bb 100644[m
+[1m--- a/internal/app/repository/category/category.go[m
+[1m+++ b/internal/app/repository/category/category.go[m
+[36m@@ -4,10 +4,11 @@[m [mimport ([m
+ 	"context"[m
+ 	"time"[m
+ [m
+[32m+[m	[32m"github.com/google/uuid"[m
+[32m+[m
+ 	"github.com/Lagwick/catalog-service/internal/app/entity"[m
+ 	"github.com/Lagwick/catalog-service/internal/app/repository"[m
+ 	"github.com/Lagwick/catalog-service/internal/app/service"[m
+[31m-	"github.com/google/uuid"[m
+ )[m
+ [m
+ type svc struct {[m
+[1mdiff --git a/internal/app/repository/category/postgres.go b/internal/app/repository/category/postgres.go[m
+[1mindex 848386c..e3fbf4a 100644[m
+[1m--- a/internal/app/repository/category/postgres.go[m
+[1m+++ b/internal/app/repository/category/postgres.go[m
+[36m@@ -4,11 +4,12 @@[m [mimport ([m
+ 	"context"[m
+ 	"database/sql"[m
+ [m
+[32m+[m	[32m"github.com/google/uuid"[m
+[32m+[m
+ 	"github.com/Lagwick/catalog-service/internal/app/entity"[m
+ 	"github.com/Lagwick/catalog-service/internal/app/repository"[m
+ 	rcpostgres "github.com/Lagwick/catalog-service/internal/app/repository/conn/postgres"[m
+ 	"github.com/Lagwick/catalog-service/internal/app/util"[m
+[31m-	"github.com/google/uuid"[m
+ )[m
+ [m
+ type ([m
+[1mdiff --git a/internal/app/repository/conn/postgres/conn.go b/internal/app/repository/conn/postgres/conn.go[m
+[1mindex 119e4ac..018f7c8 100644[m
+[1m--- a/internal/app/repository/conn/postgres/conn.go[m
+[1m+++ b/internal/app/repository/conn/postgres/conn.go[m
+[36m@@ -9,12 +9,13 @@[m [mimport ([m
+ 	"strings"[m
+ 	"time"[m
+ [m
+[31m-	"github.com/Lagwick/catalog-service/internal/app/config/section"[m
+[31m-	"github.com/Lagwick/catalog-service/migration"[m
+ 	"github.com/uptrace/bun"[m
+ 	"github.com/uptrace/bun/dialect/pgdialect"[m
+ 	"github.com/uptrace/bun/driver/pgdriver"[m
+ 	"github.com/uptrace/bun/migrate"[m
+[32m+[m
+[32m+[m	[32m"github.c
