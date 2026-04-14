@@ -10,17 +10,17 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type HttpProc struct {
+type HTTPProc struct {
 	server http.Server
 	addr   string
 }
 
-func NewHttp(
+func NewHTTP(
 	hHealth rhandler.Health,
 	hCategory rhandler.Category,
 	hProduct rhandler.Product,
 	cfg section.ProcessorWebServer,
-) *HttpProc {
+) *HTTPProc {
 	r := mux.NewRouter()
 
 	r.NotFoundHandler = http.HandlerFunc(handlerNotFound)
@@ -58,7 +58,7 @@ func NewHttp(
 		return nil
 	})
 
-	p := HttpProc{
+	p := HTTPProc{
 		addr: fmt.Sprintf(":%d", cfg.ListenPort),
 	}
 
@@ -68,7 +68,7 @@ func NewHttp(
 	return &p
 }
 
-func (p *HttpProc) Serve() error {
+func (p *HTTPProc) Serve() error {
 	log.Info().Str("addr", p.addr).Msg("Starting HTTP server")
 	return p.server.ListenAndServe()
 }

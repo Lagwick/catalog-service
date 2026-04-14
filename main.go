@@ -48,7 +48,7 @@ func main() {
 	categoryHandler := hcategory.NewHandler(categorySvc)
 	productHandler := hproduct.NewHandler(productSvc)
 
-	server := rprocessor.NewHttp(
+	server := rprocessor.NewHTTP(
 		healthHandler,
 		categoryHandler,
 		productHandler,
