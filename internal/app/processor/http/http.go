@@ -60,7 +60,7 @@ func NewHttp(
 		return nil
 	})
 
-	p := httpProc{
+	p := HttpProc{
 		addr: fmt.Sprintf(":%d", cfg.ListenPort),
 	}
 
@@ -70,7 +70,7 @@ func NewHttp(
 	return &p
 }
 
-func (p *httpProc) Serve() error {
+func (p *HttpProc) Serve() error {
 	log.Info().Str("addr", p.addr).Msg("Starting HTTP server")
 	return p.server.ListenAndServe()
 }
