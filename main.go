@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 
-	"github.com/rs/zerolog/log"
-
 	"github.com/Lagwick/catalog-service/internal/app/config"
 	hcategory "github.com/Lagwick/catalog-service/internal/app/handler/http/category"
 	hhealth "github.com/Lagwick/catalog-service/internal/app/handler/http/health"
@@ -15,6 +13,7 @@ import (
 	pproduct "github.com/Lagwick/catalog-service/internal/app/repository/product"
 	scategory "github.com/Lagwick/catalog-service/internal/app/service/category"
 	sproduct "github.com/Lagwick/catalog-service/internal/app/service/product"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {

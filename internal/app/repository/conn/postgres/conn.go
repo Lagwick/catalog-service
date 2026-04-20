@@ -9,13 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Lagwick/catalog-service/internal/app/config/section"
+	"github.com/Lagwick/catalog-service/migration"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/migrate"
-
-	"github.com/Lagwick/catalog-service/internal/app/config/section"
-	"github.com/Lagwick/catalog-service/migration"
 )
 
 type (

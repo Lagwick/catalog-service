@@ -3,9 +3,8 @@ package service
 import (
 	"context"
 
-	"github.com/google/uuid"
-
 	"github.com/Lagwick/catalog-service/internal/app/entity"
+	"github.com/google/uuid"
 )
 
 type (

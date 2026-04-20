@@ -4,14 +4,13 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/Lagwick/catalog-service/internal/pkg/http/binding"
-	"github.com/google/uuid"
-	"github.com/gorilla/mux"
-
 	"github.com/Lagwick/catalog-service/internal/app/entity"
 	rhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"
 	"github.com/Lagwick/catalog-service/internal/app/service"
+	"github.com/Lagwick/catalog-service/internal/pkg/http/binding"
 	"github.com/Lagwick/catalog-service/internal/pkg/http/httph"
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 type handler struct {

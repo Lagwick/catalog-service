@@ -3,9 +3,8 @@ package rprocessor
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-
 	rhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"
+	"github.com/gorilla/mux"
 )
 
 func vGenericRegHealthCheck(r *mux.Router, h rhandler.Health) {
