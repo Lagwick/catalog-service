@@ -16,5 +16,4 @@ func ErrorApply(w http.ResponseWriter, code int, message string) {
 	}
 
 	_ = EncodeJSON(w, errResp)
-
 }
