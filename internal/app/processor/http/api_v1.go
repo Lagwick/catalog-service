@@ -3,8 +3,9 @@ package rprocessor
 import (
 	"net/http"
 
-	rhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"
 	"github.com/gorilla/mux"
+
+	rhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"
 )
 
 func v1RegCategoryHandler(r1 *mux.Router, h rhandler.Category) {
