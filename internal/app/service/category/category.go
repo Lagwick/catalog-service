@@ -55,10 +55,6 @@ func (s *svc) GetByGUID(ctx context.Context, guid uuid.UUID) (entity.Category, e
 
 // UPDATE
 func (s *svc) Update(ctx context.Context, guid uuid.UUID, req entity.RequestCategoryUpdate) (entity.Category, error) {
-	if err := req.Validate(); err != nil {
-		return entity.Category{}, err
-	}
-
 	category, err := s.repoCategory.GetByGUID(ctx, guid)
 	if err != nil {
 		return entity.Category{}, err

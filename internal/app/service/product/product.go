@@ -28,10 +28,6 @@ func (s *svc) GetByGUID(ctx context.Context, guid uuid.UUID) (entity.Product, er
 }
 
 func (s *svc) Create(ctx context.Context, req entity.RequestProductCreate) (entity.Product, error) {
-	if err := req.Validate(); err != nil {
-		return entity.Product{}, err
-	}
-
 	existing, err := s.repoProduct.List(ctx, &req.Name, nil)
 	if err != nil {
 		return entity.Product{}, err
@@ -64,10 +60,6 @@ func (s *svc) Create(ctx context.Context, req entity.RequestProductCreate) (enti
 }
 
 func (s *svc) Update(ctx context.Context, guid uuid.UUID, req entity.RequestProductUpdate) (entity.Product, error) {
-	if err := req.Validate(); err != nil {
-		return entity.Product{}, err
-	}
-
 	product, err := s.repoProduct.GetByGUID(ctx, guid)
 	if err != nil {
 		return entity.Product{}, err

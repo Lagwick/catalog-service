@@ -1,7 +1,6 @@
 package hproduct
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/Lagwick/catalog-service/internal/app/entity"
 	rhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"
 	"github.com/Lagwick/catalog-service/internal/app/service"
+	"github.com/Lagwick/catalog-service/internal/pkg/http/binding"
 	"github.com/Lagwick/catalog-service/internal/pkg/http/httph"
 )
 
@@ -25,12 +25,7 @@ func NewHandler(svcProduct service.Product) rhandler.Product {
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	var req entity.RequestProductCreate
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httph.SendError(w, http.StatusBadRequest, entity.ErrIncorrectParameters)
-		return
-	}
-
-	if err := req.Validate(); err != nil {
+	if err := binding.ScanAndValidateJSON(r, &req); err != nil {
 		httph.SendError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -99,12 +94,8 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req entity.RequestProductUpdate
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httph.SendError(w, http.StatusBadRequest, entity.ErrIncorrectParameters)
-		return
-	}
 
-	if err := req.Validate(); err != nil {
+	if err := binding.ScanAndValidateJSON(r, &req); err != nil {
 		httph.SendError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -144,11 +135,12 @@ func (h *handler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	err = h.svcProduct.Delete(r.Context(), guid)
 	if err != nil {
-		if errors.Is(err, entity.ErrNotFound) {
+		switch {
+		case errors.Is(err, entity.ErrNotFound):
 			httph.SendError(w, http.StatusNotFound, err)
-			return
+		default:
+			httph.SendError(w, http.StatusInternalServerError, err)
 		}
-		httph.SendError(w, http.StatusInternalServerError, err)
 		return
 	}
 
