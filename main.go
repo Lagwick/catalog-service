@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"os"
 
 	"github.com/rs/zerolog/log"
 
@@ -19,7 +20,11 @@ import (
 
 func main() {
 	ctx := context.Background()
-	config.Load()
+	config.Load(config.LoadArgs{
+		Output:          os.Stdout,
+		EnableSimpleLog: true,
+	})
+
 	cfg := config.Root
 
 	pgClient, err := rcpostgres.NewConn(ctx, cfg.Repository.Postgres)
@@ -37,6 +42,10 @@ func main() {
 			Int64("old_version", oldVer).
 			Int64("new_version", newVer).
 			Msg("Database migrated")
+	} else {
+		log.Info().
+			Int64("version", newVer).
+			Msg("Database is up to date")
 	}
 
 	categoryRepo := pcategory.NewRepoFromPostgres(pgClient)
