@@ -1,7 +1,6 @@
 package hproduct
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -26,20 +25,13 @@ func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	var req entity.RequestProductCreate
 
 	if err := binding.ScanAndValidateJSON(r, &req); err != nil {
-		httph.SendError(w, http.StatusBadRequest, err)
+		httph.HandleError(w, r, err)
 		return
 	}
 
 	product, err := h.svcProduct.Create(r.Context(), req)
 	if err != nil {
-		switch {
-		case errors.Is(err, entity.ErrAlreadyExists):
-			httph.SendError(w, http.StatusBadRequest, err)
-		case errors.Is(err, entity.ErrNotFound):
-			httph.SendError(w, http.StatusBadRequest, err)
-		default:
-			httph.SendError(w, http.StatusInternalServerError, err)
-		}
+		httph.HandleError(w, r, err)
 		return
 	}
 
@@ -59,17 +51,13 @@ func (h *handler) GetByGUID(w http.ResponseWriter, r *http.Request) {
 
 	guid, err := uuid.Parse(vars["guid"])
 	if err != nil {
-		httph.SendError(w, http.StatusBadRequest, entity.ErrIncorrectParameters)
+		httph.HandleError(w, r, err)
 		return
 	}
 
 	product, err := h.svcProduct.GetByGUID(r.Context(), guid)
 	if err != nil {
-		if errors.Is(err, entity.ErrNotFound) {
-			httph.SendError(w, http.StatusNotFound, err)
-			return
-		}
-		httph.SendError(w, http.StatusInternalServerError, err)
+		httph.HandleError(w, r, err)
 		return
 	}
 
@@ -89,27 +77,20 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 
 	guid, err := uuid.Parse(vars["guid"])
 	if err != nil {
-		httph.SendError(w, http.StatusBadRequest, entity.ErrIncorrectParameters)
+		httph.HandleError(w, r, err)
 		return
 	}
 
 	var req entity.RequestProductUpdate
 
 	if err := binding.ScanAndValidateJSON(r, &req); err != nil {
-		httph.SendError(w, http.StatusBadRequest, err)
+		httph.HandleError(w, r, err)
 		return
 	}
 
 	product, err := h.svcProduct.Update(r.Context(), guid, req)
 	if err != nil {
-		switch {
-		case errors.Is(err, entity.ErrNotFound):
-			httph.SendError(w, http.StatusNotFound, err)
-		case errors.Is(err, entity.ErrAlreadyExists):
-			httph.SendError(w, http.StatusBadRequest, err)
-		default:
-			httph.SendError(w, http.StatusInternalServerError, err)
-		}
+		httph.HandleError(w, r, err)
 		return
 	}
 
@@ -129,18 +110,12 @@ func (h *handler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	guid, err := uuid.Parse(vars["guid"])
 	if err != nil {
-		httph.SendError(w, http.StatusBadRequest, entity.ErrIncorrectParameters)
+		httph.HandleError(w, r, err)
 		return
 	}
 
-	err = h.svcProduct.Delete(r.Context(), guid)
-	if err != nil {
-		switch {
-		case errors.Is(err, entity.ErrNotFound):
-			httph.SendError(w, http.StatusNotFound, err)
-		default:
-			httph.SendError(w, http.StatusInternalServerError, err)
-		}
+	if err := h.svcProduct.Delete(r.Context(), guid); err != nil {
+		httph.HandleError(w, r, err)
 		return
 	}
 
@@ -150,11 +125,12 @@ func (h *handler) Delete(w http.ResponseWriter, r *http.Request) {
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
 	products, err := h.svcProduct.List(r.Context())
 	if err != nil {
-		httph.SendError(w, http.StatusInternalServerError, err)
+		httph.HandleError(w, r, err)
 		return
 	}
 
 	resp := make([]entity.ResponseProduct, 0, len(products))
+
 	for _, p := range products {
 		resp = append(resp, entity.ResponseProduct{
 			GUID:         p.GUID,
