@@ -66,7 +66,7 @@ func NewConn(ctx context.Context, cfg section.RepositoryPostgres) (*Client, erro
 	}
 
 	return &Client{
-		_bunDB:   bunDB,
+		_bunDB:   newTxInjector(bunDB),
 		rawBunDB: bunDB,
 		cfg:      cfg,
 	}, nil
@@ -128,4 +128,35 @@ func (c *Client) Migrate(ctx context.Context) (oldVer, newVer int64, err error) 
 	}
 
 	return oldVer, newVer, nil
+}
+
+func (c *Client) InsideTx(ctx context.Context, fn func(ctx context.Context) error) error {
+	tx := getTxFromContext(ctx)
+	if tx.Tx != nil {
+		return fn(ctx)
+	}
+
+	tx, err := c.rawBunDB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	done := false
+
+	defer func() {
+		if !done {
+			_ = tx.Rollback()
+		}
+	}()
+
+	ctx = setTxToContext(ctx, tx)
+
+	err = fn(ctx)
+	if err != nil {
+		return err
+	}
+
+	done = true
+
+	return tx.Commit()
 }
