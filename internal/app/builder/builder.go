@@ -6,16 +6,15 @@ import (
 	"reflect"
 	"sync"
 
+	"github.com/Lagwick/catalog-service/internal/app/config"
+	"github.com/Lagwick/catalog-service/internal/app/processor"
 	pprocessor "github.com/Lagwick/catalog-service/internal/app/processor/other"
+	"github.com/Lagwick/catalog-service/internal/app/repository"
 	pcategory "github.com/Lagwick/catalog-service/internal/app/repository/category"
+	rcpostgres "github.com/Lagwick/catalog-service/internal/app/repository/conn/postgres"
 	pproduct "github.com/Lagwick/catalog-service/internal/app/repository/product"
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
-
-	"github.com/Lagwick/catalog-service/internal/app/config"
-	"github.com/Lagwick/catalog-service/internal/app/processor"
-	"github.com/Lagwick/catalog-service/internal/app/repository"
-	rcpostgres "github.com/Lagwick/catalog-service/internal/app/repository/conn/postgres"
 )
 
 type Builder struct {
