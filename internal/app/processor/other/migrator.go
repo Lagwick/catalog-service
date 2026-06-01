@@ -27,7 +27,6 @@ func (p *procMigrate) StartAsync(ctx context.Context, wg *sync.WaitGroup) {
 }
 
 func (p *procMigrate) job(ctx context.Context) {
-
 	oldVer, newVer, err := p.migrator.Migrate(ctx)
 	if err != nil {
 		log.Error().Err(err).Msg("Migration error")
