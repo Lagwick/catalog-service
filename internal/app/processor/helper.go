@@ -41,6 +41,7 @@ func WatchForShutdown(ctx context.Context, wg *sync.WaitGroup, closer io.Closer)
 		_ = closer.Close()
 	}()
 }
+
 func Wrap(ctx context.Context, wg *sync.WaitGroup, cb func(ctx2 context.Context)) {
 	if wg != nil {
 		wg.Add(1)
