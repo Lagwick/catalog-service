@@ -3,41 +3,75 @@ package builder
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
 	"reflect"
 	"sync"
+	"syscall"
 
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 
 	"github.com/Lagwick/catalog-service/internal/app/config"
+	rhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"
+	hcategory "github.com/Lagwick/catalog-service/internal/app/handler/http/category"
+	rhealth "github.com/Lagwick/catalog-service/internal/app/handler/http/health"
+	hproduct "github.com/Lagwick/catalog-service/internal/app/handler/http/product"
 	"github.com/Lagwick/catalog-service/internal/app/processor"
+	rprocessor "github.com/Lagwick/catalog-service/internal/app/processor/http"
 	pprocessor "github.com/Lagwick/catalog-service/internal/app/processor/other"
 	"github.com/Lagwick/catalog-service/internal/app/repository"
 	pcategory "github.com/Lagwick/catalog-service/internal/app/repository/category"
 	rcpostgres "github.com/Lagwick/catalog-service/internal/app/repository/conn/postgres"
 	pproduct "github.com/Lagwick/catalog-service/internal/app/repository/product"
+	"github.com/Lagwick/catalog-service/internal/app/service"
+	scategory "github.com/Lagwick/catalog-service/internal/app/service/category"
+	sproduct "github.com/Lagwick/catalog-service/internal/app/service/product"
 )
 
 type Builder struct {
-	cCtx *cli.Context
-	ctx  context.Context
-	wg   sync.WaitGroup
-	err  error
-	cfg  config.Config
+	cCtx       *cli.Context
+	ctx        context.Context
+	wg         sync.WaitGroup
+	err        error
+	cfg        config.Config
+	cancelFunc context.CancelFunc
+
+	chErrors chan error
 
 	connPostgres *rcpostgres.Client
 
 	categoryRepository repository.Category
 	productRepository  repository.Product
+	categoryService    service.Category
+	productService     service.Product
+	healthHandler      rhandler.Health
+	categoryHandler    rhandler.Category
+	productHandler     rhandler.Product
 
 	processors []processor.Processor
 }
 
 func NewBuilder(cCtx *cli.Context) *Builder {
-	return &Builder{
-		cCtx: cCtx,
-		ctx:  context.Background(),
+	b := Builder{
+		cCtx:     cCtx,
+		chErrors: make(chan error, 4096),
 	}
+
+	b.healthHandler = rhealth.NewHandler()
+
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	b.ctx = ctx
+	b.cancelFunc = cancelFunc
+	sig := make(chan os.Signal, 1)
+	signal.Notify(
+		sig, syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGHUP,
+	)
+	go b.waitForSignal(sig, cancelFunc)
+	go b.printErrors()
+	return &b
 }
 
 func (b *Builder) BuildConfig() {
@@ -47,6 +81,10 @@ func (b *Builder) BuildConfig() {
 }
 
 func (b *Builder) Run() {
+	if b.ctx.Err() != nil {
+		log.Info().Msg("Shutdown during initialization")
+		return
+	}
 	if b.err != nil {
 		log.Fatal().Err(b.err).Msg("Failed to initialize application")
 	}
@@ -100,6 +138,18 @@ func (b *Builder) BuildRepoProduct() {
 ///// PRIVATE //////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+func (b *Builder) waitForSignal(sig chan os.Signal, cancelFunc func()) {
+	result := <-sig
+	log.Info().Str("signal", result.String()).Msg("Shutdown is requested")
+	cancelFunc()
+}
+
+func (b *Builder) printErrors() {
+	for err := range b.chErrors {
+		log.Error().Err(err).Msg("Got new error")
+	}
+}
+
 func (b *Builder) buildConfig() {
 	args := config.LoadArgs{
 		Output:          b.cCtx.App.Writer,
@@ -112,7 +162,7 @@ func (b *Builder) buildConfig() {
 }
 
 func (b *Builder) exec(preCond bool, cb func(b *Builder), requiredArgs ...any) {
-	if !preCond || b.err != nil {
+	if !preCond || b.err != nil || b.ctx.Err() != nil {
 		return
 	}
 
@@ -130,4 +180,51 @@ func (b *Builder) exec(preCond bool, cb func(b *Builder), requiredArgs ...any) {
 	}
 
 	cb(b)
+}
+
+////////////////////////////////////////////////////////////////////////////////
+///// SERVICES /////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+func (b *Builder) BuildServiceCategory() {
+	b.exec(true, func(b *Builder) {
+		b.categoryService = scategory.NewService(b.categoryRepository, b.productRepository)
+	}, b.categoryRepository, b.productRepository)
+}
+
+func (b *Builder) BuildServiceProduct() {
+	b.exec(true, func(b *Builder) {
+		b.productService = sproduct.NewService(b.productRepository, b.categoryRepository)
+	}, b.productRepository, b.categoryRepository)
+}
+
+////////////////////////////////////////////////////////////////////////////////
+///// HANDLERS /////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+func (b *Builder) BuildHandlerHttpCategory() {
+	b.exec(true, func(b *Builder) {
+		b.categoryHandler = hcategory.NewHandler(b.categoryService)
+	}, b.categoryService)
+}
+
+func (b *Builder) BuildHandlerHttpProduct() {
+	b.exec(true, func(b *Builder) {
+		b.productHandler = hproduct.NewHandler(b.productService)
+	}, b.productService)
+}
+
+////////////////////////////////////////////////////////////////////////////////
+///// PROCESSORS ///////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+
+func (b *Builder) BuildProcHttp() {
+	b.exec(true, func(b *Builder) {
+		proc := rprocessor.NewHTTP(
+			b.healthHandler,
+			b.categoryHandler,
+			b.productHandler,
+			b.cfg.Processor.WebServer)
+		b.processors = append(b.processors, proc)
+	}, b.healthHandler)
 }

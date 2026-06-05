@@ -1,14 +1,19 @@
 package rprocessor
 
 import (
+	"context"
 	"fmt"
+	"net"
 	"net/http"
+	"sync"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 
 	"github.com/Lagwick/catalog-service/internal/app/config/section"
 	rhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"
+	"github.com/Lagwick/catalog-service/internal/app/processor"
 	"github.com/Lagwick/catalog-service/internal/app/util"
 	"github.com/Lagwick/catalog-service/internal/pkg/http/httph"
 	"github.com/Lagwick/catalog-service/internal/pkg/http/mzerolog"
@@ -24,7 +29,7 @@ func NewHTTP(
 	hCategory rhandler.Category,
 	hProduct rhandler.Product,
 	cfg section.ProcessorWebServer,
-) *HTTPProc {
+) processor.Processor {
 	r := mux.NewRouter()
 
 	r.NotFoundHandler = http.HandlerFunc(handlerNotFound)
@@ -73,13 +78,38 @@ func NewHTTP(
 		addr: fmt.Sprintf(":%d", cfg.ListenPort),
 	}
 
-	p.server.Addr = p.addr
 	p.server.Handler = r
 
 	return &p
 }
 
-func (p *HTTPProc) Serve() error {
-	log.Info().Str("addr", p.addr).Msg("Starting HTTP server")
-	return p.server.ListenAndServe()
+func (p *HTTPProc) StartAsync(ctx context.Context, wg *sync.WaitGroup) {
+	var lc net.ListenConfig
+
+	l, err := lc.Listen(ctx, "tcp", p.addr)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot start listener")
+	}
+
+	log.Info().
+		Str("addr", p.addr).
+		Msg("HTTP server started")
+
+	go p.serve(l)
+
+	processor.WatchForShutdown(
+		ctx,
+		wg,
+		processor.CloserFunc(l.Close))
+
+	processor.WatchForShutdown(
+		ctx,
+		wg,
+		processor.NewCloserContextFunc(
+			p.server.Shutdown, context.Background(), 5*time.Second,
+		))
+}
+
+func (p *HTTPProc) serve(l net.Listener) {
+	_ = p.server.Serve(l)
 }
