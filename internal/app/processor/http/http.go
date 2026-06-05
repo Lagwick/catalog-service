@@ -100,22 +100,14 @@ func (p *HTTPProc) StartAsync(ctx context.Context, wg *sync.WaitGroup) {
 	processor.WatchForShutdown(
 		ctx,
 		wg,
-		processor.CloserFunc(func() error {
-			return l.Close()
-		}),
-	)
+		processor.CloserFunc(l.Close))
 
 	processor.WatchForShutdown(
 		ctx,
 		wg,
 		processor.NewCloserContextFunc(
-			func(ctx context.Context) error {
-				return p.server.Shutdown(ctx)
-			},
-			context.Background(),
-			5*time.Second,
-		),
-	)
+			p.server.Shutdown, context.Background(), 5*time.Second,
+		))
 }
 
 func (p *HTTPProc) serve(l net.Listener) {
