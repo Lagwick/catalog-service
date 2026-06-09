@@ -18,6 +18,7 @@ vendor/
 *.tmp
 
 # Coverage
+coverage
 coverage.out
 
 # macOS
@@ -27,3 +28,6 @@ coverage.out
 # Здесь он НЕ игнорируется только в рамках учебного проекта,
 # чтобы студенты могли видеть пример конфигурации.
 .env
+
+# Tests
+
