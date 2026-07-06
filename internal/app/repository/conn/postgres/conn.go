@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"net/url"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/uptrace/bun"
@@ -33,40 +33,43 @@ func (c *Client) GetRawBunDB() *bun.DB {
 	return c.rawBunDB
 }
 
-func NewConn(ctx context.Context, cfg section.RepositoryPostgres) (*Client, error) {
-	u := &url.URL{
-		Scheme: "postgres",
-		User:   url.UserPassword(cfg.Username, cfg.Password),
-		Host:   cfg.Address,
-		Path:   cfg.Name,
-	}
-	q := u.Query()
-	q.Set("sslmode", "disable")
-	u.RawQuery = q.Encode()
+func NewClient(ctx context.Context, cfg section.RepositoryPostgres) (*Client, error) {
+	var u url.URL
+	u.Scheme = "postgres"
+	u.Host = cfg.Address
+	u.User = url.UserPassword(cfg.Username, cfg.Password)
+	u.Path = cfg.Name
+
+	args := make(url.Values)
+	args.Set("sslmode", "disable")
+	u.RawQuery = args.Encode()
+
 	dsn := u.String()
+
+	log.Printf("Initializing PostgreSQL connection read_timeout=%s write_timeout=%s", cfg.ReadTimeout, cfg.WriteTimeout)
 
 	connector := pgdriver.NewConnector(
 		pgdriver.WithDSN(dsn),
-		pgdriver.WithDialTimeout(cfg.ReadTimeout.Duration),
 		pgdriver.WithReadTimeout(cfg.ReadTimeout.Duration),
 		pgdriver.WithWriteTimeout(cfg.WriteTimeout.Duration),
 	)
 
 	sqlDB := sql.OpenDB(connector)
 	sqlDB.SetMaxOpenConns(10)
-	sqlDB.SetMaxIdleConns(10)
 
 	bunDB := bun.NewDB(sqlDB, pgdialect.New(), bun.WithDiscardUnknownColumns())
 
 	pingCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
-	if err := bunDB.PingContext(pingCtx); err != nil {
-		return nil, fmt.Errorf("не удалось подключиться к БД: %w", err)
+	if err := sqlDB.PingContext(pingCtx); err != nil {
+		return nil, fmt.Errorf("failed to ping PostgreSQL: %w", err)
 	}
 
+	log.Printf("PostgreSQL connection established")
+
 	return &Client{
-		_bunDB:   newTxInjector(bunDB),
+		_bunDB:   bunDB,
 		rawBunDB: bunDB,
 		cfg:      cfg,
 	}, nil
@@ -76,7 +79,7 @@ func (c *Client) Migrate(ctx context.Context) (oldVer, newVer int64, err error) 
 	migrations := migrate.NewMigrations()
 
 	if err = migrations.Discover(migration.Postgres); err != nil {
-		return 0, 0, fmt.Errorf("discover migrations: %w", err)
+		return 0, 0, fmt.Errorf("failed to discover migrations: %w", err)
 	}
 
 	opts := []migrate.MigratorOption{
@@ -85,78 +88,34 @@ func (c *Client) Migrate(ctx context.Context) (oldVer, newVer int64, err error) 
 		migrate.WithMarkAppliedOnSuccess(true),
 	}
 
-	migrator := migrate.NewMigrator(
-		c.rawBunDB,
-		migrations,
-		opts...,
-	)
+	m := migrate.NewMigrator(c.rawBunDB, migrations, opts...)
 
-	if err = migrator.Init(ctx); err != nil {
-		return 0, 0, fmt.Errorf("init migrator: %w", err)
+	if err = m.Init(ctx); err != nil {
+		return 0, 0, fmt.Errorf("failed to init migrator: %w", err)
 	}
 
-	applied, err := migrator.AppliedMigrations(ctx)
+	applied, err := m.AppliedMigrations(ctx)
 	if err != nil {
-		return 0, 0, fmt.Errorf("get applied migrations: %w", err)
+		return 0, 0, fmt.Errorf("failed to get applied migrations: %w", err)
 	}
 
 	if len(applied) > 0 {
-		parts := strings.SplitN(applied[0].Name, "_", 2)
-		oldVer, err = strconv.ParseInt(parts[0], 10, 64)
-		if err != nil {
-			return 0, 0, fmt.Errorf("parse old migration version %q: %w", applied[0].Name, err)
-		}
-	}
-
-	group, err := migrator.Migrate(ctx)
-	if err != nil {
-		return oldVer, oldVer, fmt.Errorf("apply migrations: %w", err)
+		oldVer, _ = strconv.ParseInt(applied[0].Name, 10, 64)
 	}
 
 	newVer = oldVer
-	if group != nil {
-		for _, m := range group.Migrations {
-			parts := strings.SplitN(m.Name, "_", 2)
-			ver, err := strconv.ParseInt(parts[0], 10, 64)
-			if err != nil {
-				return oldVer, oldVer, fmt.Errorf("parse migration version %q: %w", m.Name, err)
-			}
-			if ver > newVer {
-				newVer = ver
-			}
+
+	mgg, err := m.Migrate(ctx)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to run migrations: %w", err)
+	}
+
+	for _, mg := range mgg.Migrations {
+		v, _ := strconv.ParseInt(mg.Name, 10, 64)
+		if v > newVer {
+			newVer = v
 		}
 	}
 
 	return oldVer, newVer, nil
-}
-
-func (c *Client) InsideTx(ctx context.Context, fn func(ctx context.Context) error) error {
-	tx := getTxFromContext(ctx)
-	if tx.Tx != nil {
-		return fn(ctx)
-	}
-
-	tx, err := c.rawBunDB.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-
-	done := false
-
-	defer func() {
-		if !done {
-			_ = tx.Rollback()
-		}
-	}()
-
-	ctx = setTxToContext(ctx, tx)
-
-	err = fn(ctx)
-	if err != nil {
-		return err
-	}
-
-	done = true
-
-	return tx.Commit()
 }

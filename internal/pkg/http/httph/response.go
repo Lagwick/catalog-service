@@ -7,8 +7,8 @@ import (
 )
 
 type httpCoder interface {
-	HTTPStatus() int
 	error
+	HTTPStatus() int
 }
 
 func SendJSON(w http.ResponseWriter, status int, data interface{}) {

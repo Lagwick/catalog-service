@@ -2,14 +2,13 @@ package pproduct
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/google/uuid"
+	"github.com/uptrace/bun"
 
 	"github.com/Lagwick/catalog-service/internal/app/entity"
 	"github.com/Lagwick/catalog-service/internal/app/repository"
 	rcpostgres "github.com/Lagwick/catalog-service/internal/app/repository/conn/postgres"
-	"github.com/Lagwick/catalog-service/internal/app/util"
 )
 
 type (
@@ -29,10 +28,10 @@ func (r *repoPg) Create(ctx context.Context, product entity.Product) error {
 	return err
 }
 
-func (r *repoPg) GetByGUID(ctx context.Context, guid uuid.UUID) (entity.Product, error) {
-	var product entity.Product
-	err := r.NewSelect().Model(&product).Where("guid = ?", guid).Scan(ctx)
-	return product, util.ReplaceErr1(err, sql.ErrNoRows, entity.ErrNotFound)
+func (r *repoPg) GetByGUIDs(ctx context.Context, guids []uuid.UUID) ([]entity.Product, error) {
+	var products []entity.Product
+	err := r.NewSelect().Model(&products).Where("guid IN (?)", bun.List(guids)).Scan(ctx)
+	return products, err
 }
 
 func (r *repoPg) Update(ctx context.Context, product entity.Product) error {
@@ -52,18 +51,21 @@ func (r *repoPg) Delete(ctx context.Context, guid uuid.UUID) error {
 	return rcpostgres.DeleteErr(err)
 }
 
-func (r *repoPg) List(ctx context.Context, name *string, categoryGUID *uuid.UUID) ([]entity.Product, error) {
-	products := make([]entity.Product, 0)
-
+func (r *repoPg) List(ctx context.Context, name *string, categoryGUID *uuid.UUID, minPrice, maxPrice *int64) ([]entity.Product, error) {
+	var products []entity.Product
 	query := r.NewSelect().Model(&products)
-
 	if name != nil {
 		query = query.Where("name = ?", *name)
 	}
 	if categoryGUID != nil {
 		query = query.Where("category_guid = ?", *categoryGUID)
 	}
-
+	if minPrice != nil {
+		query = query.Where("price >= ?", *minPrice)
+	}
+	if maxPrice != nil {
+		query = query.Where("price <= ?", *maxPrice)
+	}
 	err := query.Scan(ctx)
 	return products, err
 }

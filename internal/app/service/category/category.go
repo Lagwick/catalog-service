@@ -11,118 +11,96 @@ import (
 	"github.com/Lagwick/catalog-service/internal/app/service"
 )
 
-type svc struct {
+type srv struct {
 	repoCategory repository.Category
 	repoProduct  repository.Product
 }
 
 func NewService(repoCategory repository.Category, repoProduct repository.Product) service.Category {
-	return &svc{
+	return &srv{
 		repoCategory: repoCategory,
 		repoProduct:  repoProduct,
 	}
 }
 
-// CREATE
-func (s *svc) Create(ctx context.Context, req entity.RequestCategoryCreate) (entity.Category, error) {
-	var category entity.Category
+func (s *srv) Create(ctx context.Context, req entity.RequestCategoryCreate) (entity.Category, error) {
+	existing, err := s.repoCategory.List(ctx, &req.Name)
+	if err != nil {
+		return entity.Category{}, err
+	}
+	if len(existing) > 0 {
+		return entity.Category{}, entity.ErrAlreadyExists
+	}
 
-	err := s.repoCategory.InsideTx(ctx, func(ctx context.Context) error {
-		existing, err := s.repoCategory.List(ctx, &req.Name)
-		if err != nil {
-			return err
-		}
+	now := time.Now()
+	category := entity.Category{
+		GUID:      uuid.New(),
+		Name:      req.Name,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
 
-		if len(existing) > 0 {
-			return entity.ErrAlreadyExists
-		}
+	if err := s.repoCategory.Create(ctx, category); err != nil {
+		return entity.Category{}, err
+	}
 
-		now := time.Now()
-
-		category = entity.Category{
-			GUID:      uuid.New(),
-			Name:      req.Name,
-			CreatedAt: now,
-			UpdatedAt: now,
-		}
-
-		if err := s.repoCategory.Create(ctx, category); err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	return category, err
+	return category, nil
 }
 
-// GET BY ID
-func (s *svc) GetByGUID(ctx context.Context, guid uuid.UUID) (entity.Category, error) {
-	return s.repoCategory.GetByGUID(ctx, guid)
+func (s *srv) GetByGUIDs(ctx context.Context, guids []uuid.UUID) ([]entity.Category, error) {
+	return s.repoCategory.GetByGUIDs(ctx, guids)
 }
 
-// UPDATE
-func (s *svc) Update(ctx context.Context, guid uuid.UUID, req entity.RequestCategoryUpdate) (entity.Category, error) {
-	var category entity.Category
+func (s *srv) Update(ctx context.Context, guid uuid.UUID, req entity.RequestCategoryUpdate) (entity.Category, error) {
+	categories, err := s.repoCategory.GetByGUIDs(ctx, []uuid.UUID{guid})
+	if err != nil {
+		return entity.Category{}, err
+	}
+	if len(categories) == 0 {
+		return entity.Category{}, entity.ErrNotFound
+	}
+	category := categories[0]
 
-	err := s.repoCategory.InsideTx(ctx, func(ctx context.Context) error {
-		var err error
-
-		category, err = s.repoCategory.GetByGUID(ctx, guid)
-		if err != nil {
-			return err
+	existing, err := s.repoCategory.List(ctx, &req.Name)
+	if err != nil {
+		return entity.Category{}, err
+	}
+	for _, e := range existing {
+		if e.GUID != guid {
+			return entity.Category{}, entity.ErrAlreadyExists
 		}
+	}
 
-		// проверка дубликата имени
-		if req.Name != category.Name {
-			existing, err := s.repoCategory.List(ctx, &req.Name)
-			if err != nil {
-				return err
-			}
+	category.Name = req.Name
+	category.UpdatedAt = time.Now()
 
-			if len(existing) > 0 {
-				return entity.ErrAlreadyExists
-			}
-		}
+	if err := s.repoCategory.Update(ctx, category); err != nil {
+		return entity.Category{}, err
+	}
 
-		category.Name = req.Name
-		category.UpdatedAt = time.Now()
-
-		if err := s.repoCategory.Update(ctx, category); err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	return category, err
+	return category, nil
 }
 
-// DELETE
-func (s *svc) Delete(ctx context.Context, guid uuid.UUID) error {
-	err := s.repoCategory.InsideTx(ctx, func(ctx context.Context) error {
-		if _, err := s.repoCategory.GetByGUID(ctx, guid); err != nil {
-			return err
-		}
-
-		products, err := s.repoProduct.List(ctx, nil, &guid)
-		if err != nil {
-			return err
-		}
-		if len(products) > 0 {
-			return entity.ErrCategoryHasProducts
-		}
-
-		return s.repoCategory.Delete(ctx, guid)
-	})
+func (s *srv) Delete(ctx context.Context, guid uuid.UUID) error {
+	categories, err := s.repoCategory.GetByGUIDs(ctx, []uuid.UUID{guid})
 	if err != nil {
 		return err
 	}
+	if len(categories) == 0 {
+		return entity.ErrNotFound
+	}
 
-	return nil
+	products, err := s.repoProduct.List(ctx, nil, &guid, nil, nil)
+	if err != nil {
+		return err
+	}
+	if len(products) > 0 {
+		return entity.ErrCategoryHasProducts
+	}
+
+	return s.repoCategory.Delete(ctx, guid)
 }
 
-// LIST
-func (s *svc) List(ctx context.Context) ([]entity.Category, error) {
+func (s *srv) List(ctx context.Context) ([]entity.Category, error) {
 	return s.repoCategory.List(ctx, nil)
 }

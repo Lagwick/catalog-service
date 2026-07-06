@@ -118,27 +118,29 @@ func (_c *MockProduct_Delete_Call) RunAndReturn(run func(context.Context, uuid.U
 	return _c
 }
 
-// GetByGUID provides a mock function with given fields: ctx, guid
-func (_m *MockProduct) GetByGUID(ctx context.Context, guid uuid.UUID) (entity.Product, error) {
-	ret := _m.Called(ctx, guid)
+// GetByGUIDs provides a mock function with given fields: ctx, guids
+func (_m *MockProduct) GetByGUIDs(ctx context.Context, guids []uuid.UUID) ([]entity.Product, error) {
+	ret := _m.Called(ctx, guids)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetByGUID")
+		panic("no return value specified for GetByGUIDs")
 	}
 
-	var r0 entity.Product
+	var r0 []entity.Product
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (entity.Product, error)); ok {
-		return rf(ctx, guid)
+	if rf, ok := ret.Get(0).(func(context.Context, []uuid.UUID) ([]entity.Product, error)); ok {
+		return rf(ctx, guids)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) entity.Product); ok {
-		r0 = rf(ctx, guid)
+	if rf, ok := ret.Get(0).(func(context.Context, []uuid.UUID) []entity.Product); ok {
+		r0 = rf(ctx, guids)
 	} else {
-		r0 = ret.Get(0).(entity.Product)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]entity.Product)
+		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
-		r1 = rf(ctx, guid)
+	if rf, ok := ret.Get(1).(func(context.Context, []uuid.UUID) error); ok {
+		r1 = rf(ctx, guids)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -146,85 +148,38 @@ func (_m *MockProduct) GetByGUID(ctx context.Context, guid uuid.UUID) (entity.Pr
 	return r0, r1
 }
 
-// MockProduct_GetByGUID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByGUID'
-type MockProduct_GetByGUID_Call struct {
+// MockProduct_GetByGUIDs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByGUIDs'
+type MockProduct_GetByGUIDs_Call struct {
 	*mock.Call
 }
 
-// GetByGUID is a helper method to define mock.On call
+// GetByGUIDs is a helper method to define mock.On call
 //   - ctx context.Context
-//   - guid uuid.UUID
-func (_e *MockProduct_Expecter) GetByGUID(ctx interface{}, guid interface{}) *MockProduct_GetByGUID_Call {
-	return &MockProduct_GetByGUID_Call{Call: _e.mock.On("GetByGUID", ctx, guid)}
+//   - guids []uuid.UUID
+func (_e *MockProduct_Expecter) GetByGUIDs(ctx interface{}, guids interface{}) *MockProduct_GetByGUIDs_Call {
+	return &MockProduct_GetByGUIDs_Call{Call: _e.mock.On("GetByGUIDs", ctx, guids)}
 }
 
-func (_c *MockProduct_GetByGUID_Call) Run(run func(ctx context.Context, guid uuid.UUID)) *MockProduct_GetByGUID_Call {
+func (_c *MockProduct_GetByGUIDs_Call) Run(run func(ctx context.Context, guids []uuid.UUID)) *MockProduct_GetByGUIDs_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID))
+		run(args[0].(context.Context), args[1].([]uuid.UUID))
 	})
 	return _c
 }
 
-func (_c *MockProduct_GetByGUID_Call) Return(_a0 entity.Product, _a1 error) *MockProduct_GetByGUID_Call {
+func (_c *MockProduct_GetByGUIDs_Call) Return(_a0 []entity.Product, _a1 error) *MockProduct_GetByGUIDs_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockProduct_GetByGUID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (entity.Product, error)) *MockProduct_GetByGUID_Call {
+func (_c *MockProduct_GetByGUIDs_Call) RunAndReturn(run func(context.Context, []uuid.UUID) ([]entity.Product, error)) *MockProduct_GetByGUIDs_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// InsideTx provides a mock function with given fields: ctx, fn
-func (_m *MockProduct) InsideTx(ctx context.Context, fn func(context.Context) error) error {
-	ret := _m.Called(ctx, fn)
-
-	if len(ret) == 0 {
-		panic("no return value specified for InsideTx")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, func(context.Context) error) error); ok {
-		r0 = rf(ctx, fn)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// MockProduct_InsideTx_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InsideTx'
-type MockProduct_InsideTx_Call struct {
-	*mock.Call
-}
-
-// InsideTx is a helper method to define mock.On call
-//   - ctx context.Context
-//   - fn func(context.Context) error
-func (_e *MockProduct_Expecter) InsideTx(ctx interface{}, fn interface{}) *MockProduct_InsideTx_Call {
-	return &MockProduct_InsideTx_Call{Call: _e.mock.On("InsideTx", ctx, fn)}
-}
-
-func (_c *MockProduct_InsideTx_Call) Run(run func(ctx context.Context, fn func(context.Context) error)) *MockProduct_InsideTx_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(func(context.Context) error))
-	})
-	return _c
-}
-
-func (_c *MockProduct_InsideTx_Call) Return(_a0 error) *MockProduct_InsideTx_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *MockProduct_InsideTx_Call) RunAndReturn(run func(context.Context, func(context.Context) error) error) *MockProduct_InsideTx_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// List provides a mock function with given fields: ctx, name, categoryGUID
-func (_m *MockProduct) List(ctx context.Context, name *string, categoryGUID *uuid.UUID) ([]entity.Product, error) {
-	ret := _m.Called(ctx, name, categoryGUID)
+// List provides a mock function with given fields: ctx, name, categoryGUID, minPrice, maxPrice
+func (_m *MockProduct) List(ctx context.Context, name *string, categoryGUID *uuid.UUID, minPrice *int64, maxPrice *int64) ([]entity.Product, error) {
+	ret := _m.Called(ctx, name, categoryGUID, minPrice, maxPrice)
 
 	if len(ret) == 0 {
 		panic("no return value specified for List")
@@ -232,19 +187,19 @@ func (_m *MockProduct) List(ctx context.Context, name *string, categoryGUID *uui
 
 	var r0 []entity.Product
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, *string, *uuid.UUID) ([]entity.Product, error)); ok {
-		return rf(ctx, name, categoryGUID)
+	if rf, ok := ret.Get(0).(func(context.Context, *string, *uuid.UUID, *int64, *int64) ([]entity.Product, error)); ok {
+		return rf(ctx, name, categoryGUID, minPrice, maxPrice)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, *string, *uuid.UUID) []entity.Product); ok {
-		r0 = rf(ctx, name, categoryGUID)
+	if rf, ok := ret.Get(0).(func(context.Context, *string, *uuid.UUID, *int64, *int64) []entity.Product); ok {
+		r0 = rf(ctx, name, categoryGUID, minPrice, maxPrice)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]entity.Product)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, *string, *uuid.UUID) error); ok {
-		r1 = rf(ctx, name, categoryGUID)
+	if rf, ok := ret.Get(1).(func(context.Context, *string, *uuid.UUID, *int64, *int64) error); ok {
+		r1 = rf(ctx, name, categoryGUID, minPrice, maxPrice)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -261,13 +216,15 @@ type MockProduct_List_Call struct {
 //   - ctx context.Context
 //   - name *string
 //   - categoryGUID *uuid.UUID
-func (_e *MockProduct_Expecter) List(ctx interface{}, name interface{}, categoryGUID interface{}) *MockProduct_List_Call {
-	return &MockProduct_List_Call{Call: _e.mock.On("List", ctx, name, categoryGUID)}
+//   - minPrice *int64
+//   - maxPrice *int64
+func (_e *MockProduct_Expecter) List(ctx interface{}, name interface{}, categoryGUID interface{}, minPrice interface{}, maxPrice interface{}) *MockProduct_List_Call {
+	return &MockProduct_List_Call{Call: _e.mock.On("List", ctx, name, categoryGUID, minPrice, maxPrice)}
 }
 
-func (_c *MockProduct_List_Call) Run(run func(ctx context.Context, name *string, categoryGUID *uuid.UUID)) *MockProduct_List_Call {
+func (_c *MockProduct_List_Call) Run(run func(ctx context.Context, name *string, categoryGUID *uuid.UUID, minPrice *int64, maxPrice *int64)) *MockProduct_List_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*string), args[2].(*uuid.UUID))
+		run(args[0].(context.Context), args[1].(*string), args[2].(*uuid.UUID), args[3].(*int64), args[4].(*int64))
 	})
 	return _c
 }
@@ -277,7 +234,7 @@ func (_c *MockProduct_List_Call) Return(_a0 []entity.Product, _a1 error) *MockPr
 	return _c
 }
 
-func (_c *MockProduct_List_Call) RunAndReturn(run func(context.Context, *string, *uuid.UUID) ([]entity.Product, error)) *MockProduct_List_Call {
+func (_c *MockProduct_List_Call) RunAndReturn(run func(context.Context, *string, *uuid.UUID, *int64, *int64) ([]entity.Product, error)) *MockProduct_List_Call {
 	_c.Call.Return(run)
 	return _c
 }
