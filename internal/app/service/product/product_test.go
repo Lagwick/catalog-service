@@ -31,21 +31,33 @@ func matchGUIDs(guids ...uuid.UUID) interface{} {
 	})
 }
 
+func expectInsideTx(transactionalRepo *mocks.MockTransactional, ctx context.Context) {
+	transactionalRepo.EXPECT().
+		InsideTx(ctx, mock.AnythingOfType("func(context.Context) error")).
+		RunAndReturn(func(ctx context.Context, fn func(context.Context) error) error {
+			return fn(ctx)
+		}).
+		Once()
+}
+
 type createProductSuite struct {
 	suite.Suite
-	srv          *srv
-	productRepo  *mocks.MockProduct
-	categoryRepo *mocks.MockCategory
-	ctx          context.Context
+	srv               *srv
+	productRepo       *mocks.MockProduct
+	categoryRepo      *mocks.MockCategory
+	transactionalRepo *mocks.MockTransactional
+	ctx               context.Context
 }
 
 func (s *createProductSuite) SetupTest() {
 	s.ctx = context.Background()
 	s.productRepo = mocks.NewMockProduct(s.T())
 	s.categoryRepo = mocks.NewMockCategory(s.T())
+	s.transactionalRepo = mocks.NewMockTransactional(s.T())
 	s.srv = &srv{
-		repoProduct:  s.productRepo,
-		repoCategory: s.categoryRepo,
+		repoProduct:       s.productRepo,
+		repoCategory:      s.categoryRepo,
+		repoTransactional: s.transactionalRepo,
 	}
 }
 
@@ -218,6 +230,8 @@ func (s *createProductSuite) TestCreate() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
+			expectInsideTx(s.transactionalRepo, s.ctx)
+
 			tc.prepare(tc.args)
 
 			result, err := s.srv.Create(s.ctx, tc.args.req)
@@ -342,19 +356,22 @@ func (s *getByGUIDsProductSuite) TestGetByGUIDs() {
 
 type deleteProductSuite struct {
 	suite.Suite
-	srv          *srv
-	productRepo  *mocks.MockProduct
-	categoryRepo *mocks.MockCategory
-	ctx          context.Context
+	srv               *srv
+	productRepo       *mocks.MockProduct
+	categoryRepo      *mocks.MockCategory
+	transactionalRepo *mocks.MockTransactional
+	ctx               context.Context
 }
 
 func (s *deleteProductSuite) SetupTest() {
 	s.ctx = context.Background()
 	s.productRepo = mocks.NewMockProduct(s.T())
 	s.categoryRepo = mocks.NewMockCategory(s.T())
+	s.transactionalRepo = mocks.NewMockTransactional(s.T())
 	s.srv = &srv{
-		repoProduct:  s.productRepo,
-		repoCategory: s.categoryRepo,
+		repoProduct:       s.productRepo,
+		repoCategory:      s.categoryRepo,
+		repoTransactional: s.transactionalRepo,
 	}
 }
 
@@ -446,6 +463,8 @@ func (s *deleteProductSuite) TestDelete() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
+			expectInsideTx(s.transactionalRepo, s.ctx)
+
 			tc.prepare(tc.args)
 
 			err := s.srv.Delete(s.ctx, tc.args.guid)
@@ -579,19 +598,22 @@ func (s *listProductSuite) TestList() {
 
 type updateProductSuite struct {
 	suite.Suite
-	srv          *srv
-	productRepo  *mocks.MockProduct
-	categoryRepo *mocks.MockCategory
-	ctx          context.Context
+	srv               *srv
+	productRepo       *mocks.MockProduct
+	categoryRepo      *mocks.MockCategory
+	transactionalRepo *mocks.MockTransactional
+	ctx               context.Context
 }
 
 func (s *updateProductSuite) SetupTest() {
 	s.ctx = context.Background()
 	s.productRepo = mocks.NewMockProduct(s.T())
 	s.categoryRepo = mocks.NewMockCategory(s.T())
+	s.transactionalRepo = mocks.NewMockTransactional(s.T())
 	s.srv = &srv{
-		repoProduct:  s.productRepo,
-		repoCategory: s.categoryRepo,
+		repoProduct:       s.productRepo,
+		repoCategory:      s.categoryRepo,
+		repoTransactional: s.transactionalRepo,
 	}
 }
 
@@ -852,6 +874,8 @@ func (s *updateProductSuite) TestUpdate() {
 
 	for _, tc := range testCases {
 		s.Run(tc.name, func() {
+			expectInsideTx(s.transactionalRepo, s.ctx)
+
 			tc.prepare(tc.args)
 
 			result, err := s.srv.Update(s.ctx, tc.args.guid, tc.args.req)
@@ -877,8 +901,9 @@ func (s *updateProductSuite) TestUpdate() {
 func TestNewService(t *testing.T) {
 	productRepo := mocks.NewMockProduct(t)
 	categoryRepo := mocks.NewMockCategory(t)
+	transactionalRepo := mocks.NewMockTransactional(t)
 
-	s := NewService(productRepo, categoryRepo)
+	s := NewService(productRepo, categoryRepo, transactionalRepo)
 
 	require.NotNil(t, s)
 }

@@ -69,7 +69,7 @@ func NewClient(ctx context.Context, cfg section.RepositoryPostgres) (*Client, er
 	log.Printf("PostgreSQL connection established")
 
 	return &Client{
-		_bunDB:   bunDB,
+		_bunDB:   newTxInjector(bunDB),
 		rawBunDB: bunDB,
 		cfg:      cfg,
 	}, nil
@@ -118,4 +118,10 @@ func (c *Client) Migrate(ctx context.Context) (oldVer, newVer int64, err error) 
 	}
 
 	return oldVer, newVer, nil
+}
+
+func (c *Client) InsideTx(ctx context.Context, fn func(ctx context.Context) error) error {
+	return c.rawBunDB.RunInTx(ctx, nil, func(ctx context.Context, tx bun.Tx) error {
+		return fn(setTxToContext(ctx, tx))
+	})
 }

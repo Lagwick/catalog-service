@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"sync"
 
 	"github.com/gorilla/mux"
+	"github.com/rs/zerolog/log"
 
 	"github.com/Lagwick/catalog-service/internal/app/config/section"
 	rhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"
@@ -40,7 +40,10 @@ func NewHTTP(
 		if path == "" || len(methods) == 0 {
 			return nil
 		}
-		log.Printf("Route: %v %s", methods, path)
+		log.Info().
+			Str("path", path).
+			Strs("methods", methods).
+			Msg("registered route")
 		return nil
 	})
 
@@ -52,7 +55,7 @@ func NewHTTP(
 }
 
 func (p *httpProc) Serve() error {
-	log.Printf("Starting HTTP server on %s", p.addr)
+	log.Info().Str("addr", p.addr).Msg("Starting HTTP server")
 	return p.server.ListenAndServe()
 }
 
@@ -66,12 +69,12 @@ func (p *httpProc) StartAsync(ctx context.Context, wg *sync.WaitGroup) {
 			<-ctx.Done()
 
 			if err := p.server.Close(); err != nil {
-				log.Printf("HTTP server close error: %v", err)
+				log.Error().Err(err).Msg("HTTP server close error")
 			}
 		}()
 
 		if err := p.Serve(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Printf("HTTP server failed: %v", err)
+			log.Error().Err(err).Msg("HTTP server failed")
 		}
 	}()
 }

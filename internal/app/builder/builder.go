@@ -200,8 +200,12 @@ func (b *Builder) BuildServiceCategory() {
 
 func (b *Builder) BuildServiceProduct() {
 	b.exec(true, func(b *Builder) {
-		b.productService = sproduct.NewService(b.productRepository, b.categoryRepository)
-	}, b.productRepository, b.categoryRepository)
+		b.productService = sproduct.NewService(
+			b.productRepository,
+			b.categoryRepository,
+			b.connPostgres,
+		)
+	}, b.productRepository, b.categoryRepository, b.connPostgres)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
