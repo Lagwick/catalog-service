@@ -70,16 +70,16 @@ func (h *handler) GetProducts(
 		MissingGuids: make([]string, 0),
 	}
 
-	found := make(map[string]struct{}, len(products))
+	found := make(map[uuid.UUID]struct{}, len(products))
 
 	for _, product := range products {
 		resp.Products = append(resp.Products, mcatv1.ProductToProto(product))
-		found[product.GUID.String()] = struct{}{}
+		found[product.GUID] = struct{}{}
 	}
 
-	for _, rawGuid := range rawGuids {
-		if _, ok := found[rawGuid]; !ok {
-			resp.MissingGuids = append(resp.MissingGuids, rawGuid)
+	for i, guid := range guids {
+		if _, ok := found[guid]; !ok {
+			resp.MissingGuids = append(resp.MissingGuids, rawGuids[i])
 		}
 	}
 

@@ -194,7 +194,7 @@ func (b *Builder) exec(preCond bool, cb func(b *Builder), requiredArgs ...any) {
 
 func (b *Builder) BuildServiceCategory() {
 	b.exec(true, func(b *Builder) {
-		b.categoryService = scategory.NewService(b.categoryRepository, b.productRepository)
+		b.categoryService = scategory.NewService(b.categoryRepository, b.productRepository, b.connPostgres)
 	}, b.categoryRepository, b.productRepository)
 }
 
