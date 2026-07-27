@@ -2,14 +2,13 @@ package pcategory
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/google/uuid"
+	"github.com/uptrace/bun"
 
 	"github.com/Lagwick/catalog-service/internal/app/entity"
 	"github.com/Lagwick/catalog-service/internal/app/repository"
 	rcpostgres "github.com/Lagwick/catalog-service/internal/app/repository/conn/postgres"
-	"github.com/Lagwick/catalog-service/internal/app/util"
 )
 
 type (
@@ -29,10 +28,10 @@ func (r *repoPg) Create(ctx context.Context, category entity.Category) error {
 	return err
 }
 
-func (r *repoPg) GetByGUID(ctx context.Context, guid uuid.UUID) (entity.Category, error) {
-	var category entity.Category
-	err := r.NewSelect().Model(&category).Where("guid = ?", guid).Scan(ctx)
-	return category, util.ReplaceErr1(err, sql.ErrNoRows, entity.ErrNotFound)
+func (r *repoPg) GetByGUIDs(ctx context.Context, guids []uuid.UUID) ([]entity.Category, error) {
+	var categories []entity.Category
+	err := r.NewSelect().Model(&categories).Where("guid IN (?)", bun.List(guids)).Scan(ctx)
+	return categories, err
 }
 
 func (r *repoPg) Update(ctx context.Context, category entity.Category) error {

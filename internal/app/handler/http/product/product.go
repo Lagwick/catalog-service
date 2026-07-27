@@ -14,87 +14,58 @@ import (
 )
 
 type handler struct {
-	svcProduct service.Product
+	srv service.Product
 }
 
-func NewHandler(svcProduct service.Product) rhandler.Product {
-	return &handler{svcProduct: svcProduct}
+func NewHandler(srv service.Product) rhandler.Product {
+	return &handler{srv: srv}
 }
 
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	var req entity.RequestProductCreate
-
 	if err := binding.ScanAndValidateJSON(r, &req); err != nil {
 		httph.HandleError(w, r, err)
 		return
 	}
 
-	product, err := h.svcProduct.Create(r.Context(), req)
+	product, err := h.srv.Create(r.Context(), req)
 	if err != nil {
 		httph.HandleError(w, r, err)
 		return
 	}
 
-	httph.SendJSON(w, http.StatusCreated, entity.ResponseProduct{
+	resp := entity.ResponseProductCreate{
 		GUID:         product.GUID,
 		Name:         product.Name,
 		Description:  product.Description,
 		Price:        product.Price,
 		CategoryGUID: product.CategoryGUID,
 		CreatedAt:    product.CreatedAt,
-		UpdatedAt:    product.UpdatedAt,
-	})
-}
-
-func (h *handler) GetByGUID(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
-	guid, err := uuid.Parse(vars["guid"])
-	if err != nil {
-		httph.HandleError(w, r, err)
-		return
 	}
 
-	product, err := h.svcProduct.GetByGUID(r.Context(), guid)
-	if err != nil {
-		httph.HandleError(w, r, err)
-		return
-	}
-
-	httph.SendJSON(w, http.StatusOK, entity.ResponseProduct{
-		GUID:         product.GUID,
-		Name:         product.Name,
-		Description:  product.Description,
-		Price:        product.Price,
-		CategoryGUID: product.CategoryGUID,
-		CreatedAt:    product.CreatedAt,
-		UpdatedAt:    product.UpdatedAt,
-	})
+	httph.SendJSON(w, http.StatusCreated, resp)
 }
 
 func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
-	guid, err := uuid.Parse(vars["guid"])
+	guid, err := uuid.Parse(mux.Vars(r)["guid"])
 	if err != nil {
-		httph.HandleError(w, r, err)
+		httph.HandleError(w, r, entity.ErrIncorrectParameters)
 		return
 	}
 
 	var req entity.RequestProductUpdate
-
 	if err := binding.ScanAndValidateJSON(r, &req); err != nil {
 		httph.HandleError(w, r, err)
 		return
 	}
 
-	product, err := h.svcProduct.Update(r.Context(), guid, req)
+	product, err := h.srv.Update(r.Context(), guid, req)
 	if err != nil {
 		httph.HandleError(w, r, err)
 		return
 	}
 
-	httph.SendJSON(w, http.StatusOK, entity.ResponseProduct{
+	resp := entity.ResponseProductUpdate{
 		GUID:         product.GUID,
 		Name:         product.Name,
 		Description:  product.Description,
@@ -102,37 +73,46 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 		CategoryGUID: product.CategoryGUID,
 		CreatedAt:    product.CreatedAt,
 		UpdatedAt:    product.UpdatedAt,
-	})
+	}
+
+	httph.SendJSON(w, http.StatusOK, resp)
 }
 
 func (h *handler) Delete(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
-	guid, err := uuid.Parse(vars["guid"])
+	guid, err := uuid.Parse(mux.Vars(r)["guid"])
 	if err != nil {
+		httph.HandleError(w, r, entity.ErrIncorrectParameters)
+		return
+	}
+
+	if err := h.srv.Delete(r.Context(), guid); err != nil {
 		httph.HandleError(w, r, err)
 		return
 	}
 
-	if err := h.svcProduct.Delete(r.Context(), guid); err != nil {
-		httph.HandleError(w, r, err)
-		return
-	}
-
-	httph.SendEmpty(w, http.StatusNoContent)
+	httph.SendEmpty(w, http.StatusOK)
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	products, err := h.svcProduct.List(r.Context())
+	var req entity.RequestProductList
+	if r.Body != nil {
+		if err := binding.ScanAndValidateJSON(r, &req); err != nil {
+			httph.HandleError(w, r, err)
+			return
+		}
+	}
+
+	products, err := h.srv.List(r.Context(), req)
 	if err != nil {
 		httph.HandleError(w, r, err)
 		return
 	}
 
-	resp := make([]entity.ResponseProduct, 0, len(products))
-
+	resp := entity.ResponseProductList{
+		Data: make([]entity.ResponseProductListItem, 0, len(products)),
+	}
 	for _, p := range products {
-		resp = append(resp, entity.ResponseProduct{
+		resp.Data = append(resp.Data, entity.ResponseProductListItem{
 			GUID:         p.GUID,
 			Name:         p.Name,
 			Description:  p.Description,

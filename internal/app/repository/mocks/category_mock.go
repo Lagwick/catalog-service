@@ -118,27 +118,29 @@ func (_c *MockCategory_Delete_Call) RunAndReturn(run func(context.Context, uuid.
 	return _c
 }
 
-// GetByGUID provides a mock function with given fields: ctx, guid
-func (_m *MockCategory) GetByGUID(ctx context.Context, guid uuid.UUID) (entity.Category, error) {
-	ret := _m.Called(ctx, guid)
+// GetByGUIDs provides a mock function with given fields: ctx, guids
+func (_m *MockCategory) GetByGUIDs(ctx context.Context, guids []uuid.UUID) ([]entity.Category, error) {
+	ret := _m.Called(ctx, guids)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetByGUID")
+		panic("no return value specified for GetByGUIDs")
 	}
 
-	var r0 entity.Category
+	var r0 []entity.Category
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (entity.Category, error)); ok {
-		return rf(ctx, guid)
+	if rf, ok := ret.Get(0).(func(context.Context, []uuid.UUID) ([]entity.Category, error)); ok {
+		return rf(ctx, guids)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) entity.Category); ok {
-		r0 = rf(ctx, guid)
+	if rf, ok := ret.Get(0).(func(context.Context, []uuid.UUID) []entity.Category); ok {
+		r0 = rf(ctx, guids)
 	} else {
-		r0 = ret.Get(0).(entity.Category)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]entity.Category)
+		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
-		r1 = rf(ctx, guid)
+	if rf, ok := ret.Get(1).(func(context.Context, []uuid.UUID) error); ok {
+		r1 = rf(ctx, guids)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -146,78 +148,31 @@ func (_m *MockCategory) GetByGUID(ctx context.Context, guid uuid.UUID) (entity.C
 	return r0, r1
 }
 
-// MockCategory_GetByGUID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByGUID'
-type MockCategory_GetByGUID_Call struct {
+// MockCategory_GetByGUIDs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByGUIDs'
+type MockCategory_GetByGUIDs_Call struct {
 	*mock.Call
 }
 
-// GetByGUID is a helper method to define mock.On call
+// GetByGUIDs is a helper method to define mock.On call
 //   - ctx context.Context
-//   - guid uuid.UUID
-func (_e *MockCategory_Expecter) GetByGUID(ctx interface{}, guid interface{}) *MockCategory_GetByGUID_Call {
-	return &MockCategory_GetByGUID_Call{Call: _e.mock.On("GetByGUID", ctx, guid)}
+//   - guids []uuid.UUID
+func (_e *MockCategory_Expecter) GetByGUIDs(ctx interface{}, guids interface{}) *MockCategory_GetByGUIDs_Call {
+	return &MockCategory_GetByGUIDs_Call{Call: _e.mock.On("GetByGUIDs", ctx, guids)}
 }
 
-func (_c *MockCategory_GetByGUID_Call) Run(run func(ctx context.Context, guid uuid.UUID)) *MockCategory_GetByGUID_Call {
+func (_c *MockCategory_GetByGUIDs_Call) Run(run func(ctx context.Context, guids []uuid.UUID)) *MockCategory_GetByGUIDs_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uuid.UUID))
+		run(args[0].(context.Context), args[1].([]uuid.UUID))
 	})
 	return _c
 }
 
-func (_c *MockCategory_GetByGUID_Call) Return(_a0 entity.Category, _a1 error) *MockCategory_GetByGUID_Call {
+func (_c *MockCategory_GetByGUIDs_Call) Return(_a0 []entity.Category, _a1 error) *MockCategory_GetByGUIDs_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockCategory_GetByGUID_Call) RunAndReturn(run func(context.Context, uuid.UUID) (entity.Category, error)) *MockCategory_GetByGUID_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// InsideTx provides a mock function with given fields: ctx, fn
-func (_m *MockCategory) InsideTx(ctx context.Context, fn func(context.Context) error) error {
-	ret := _m.Called(ctx, fn)
-
-	if len(ret) == 0 {
-		panic("no return value specified for InsideTx")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, func(context.Context) error) error); ok {
-		r0 = rf(ctx, fn)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// MockCategory_InsideTx_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InsideTx'
-type MockCategory_InsideTx_Call struct {
-	*mock.Call
-}
-
-// InsideTx is a helper method to define mock.On call
-//   - ctx context.Context
-//   - fn func(context.Context) error
-func (_e *MockCategory_Expecter) InsideTx(ctx interface{}, fn interface{}) *MockCategory_InsideTx_Call {
-	return &MockCategory_InsideTx_Call{Call: _e.mock.On("InsideTx", ctx, fn)}
-}
-
-func (_c *MockCategory_InsideTx_Call) Run(run func(ctx context.Context, fn func(context.Context) error)) *MockCategory_InsideTx_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(func(context.Context) error))
-	})
-	return _c
-}
-
-func (_c *MockCategory_InsideTx_Call) Return(_a0 error) *MockCategory_InsideTx_Call {
-	_c.Call.Return(_a0)
-	return _c
-}
-
-func (_c *MockCategory_InsideTx_Call) RunAndReturn(run func(context.Context, func(context.Context) error) error) *MockCategory_InsideTx_Call {
+func (_c *MockCategory_GetByGUIDs_Call) RunAndReturn(run func(context.Context, []uuid.UUID) ([]entity.Category, error)) *MockCategory_GetByGUIDs_Call {
 	_c.Call.Return(run)
 	return _c
 }

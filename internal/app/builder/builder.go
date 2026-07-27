@@ -13,11 +13,14 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/Lagwick/catalog-service/internal/app/config"
+	ghcatalogv1 "github.com/Lagwick/catalog-service/internal/app/handler/grpc/catalog/v1"
 	rhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"
 	hcategory "github.com/Lagwick/catalog-service/internal/app/handler/http/category"
 	rhealth "github.com/Lagwick/catalog-service/internal/app/handler/http/health"
 	hproduct "github.com/Lagwick/catalog-service/internal/app/handler/http/product"
 	"github.com/Lagwick/catalog-service/internal/app/processor"
+	pgateway "github.com/Lagwick/catalog-service/internal/app/processor/gateway"
+	pgrpc "github.com/Lagwick/catalog-service/internal/app/processor/grpc"
 	rprocessor "github.com/Lagwick/catalog-service/internal/app/processor/http"
 	pprocessor "github.com/Lagwick/catalog-service/internal/app/processor/other"
 	"github.com/Lagwick/catalog-service/internal/app/repository"
@@ -27,6 +30,7 @@ import (
 	"github.com/Lagwick/catalog-service/internal/app/service"
 	scategory "github.com/Lagwick/catalog-service/internal/app/service/category"
 	sproduct "github.com/Lagwick/catalog-service/internal/app/service/product"
+	catalogv1 "github.com/Lagwick/catalog-service/internal/pkg/grpc/gen/catalog/v1"
 )
 
 type Builder struct {
@@ -48,6 +52,8 @@ type Builder struct {
 	healthHandler      rhandler.Health
 	categoryHandler    rhandler.Category
 	productHandler     rhandler.Product
+
+	catalogV1Handler catalogv1.CatalogServiceServer
 
 	processors []processor.Processor
 }
@@ -103,7 +109,7 @@ func (b *Builder) Run() {
 
 func (b *Builder) BuildRepoConnPostgres() {
 	b.exec(true, func(b *Builder) {
-		client, err := rcpostgres.NewConn(b.ctx, b.cfg.Repository.Postgres)
+		client, err := rcpostgres.NewClient(b.ctx, b.cfg.Repository.Postgres)
 		if err != nil {
 			b.err = err
 			return
@@ -188,14 +194,18 @@ func (b *Builder) exec(preCond bool, cb func(b *Builder), requiredArgs ...any) {
 
 func (b *Builder) BuildServiceCategory() {
 	b.exec(true, func(b *Builder) {
-		b.categoryService = scategory.NewService(b.categoryRepository, b.productRepository)
+		b.categoryService = scategory.NewService(b.categoryRepository, b.productRepository, b.connPostgres)
 	}, b.categoryRepository, b.productRepository)
 }
 
 func (b *Builder) BuildServiceProduct() {
 	b.exec(true, func(b *Builder) {
-		b.productService = sproduct.NewService(b.productRepository, b.categoryRepository)
-	}, b.productRepository, b.categoryRepository)
+		b.productService = sproduct.NewService(
+			b.productRepository,
+			b.categoryRepository,
+			b.connPostgres,
+		)
+	}, b.productRepository, b.categoryRepository, b.connPostgres)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -214,6 +224,12 @@ func (b *Builder) BuildHandlerHttpProduct() {
 	}, b.productService)
 }
 
+func (b *Builder) BuildHandlerGrpcCatalogV1() {
+	b.exec(true, func(b *Builder) {
+		b.catalogV1Handler = ghcatalogv1.NewHandler(b.productService)
+	}, b.productService)
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 ///// PROCESSORS ///////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -227,4 +243,26 @@ func (b *Builder) BuildProcHttp() {
 			b.cfg.Processor.WebServer)
 		b.processors = append(b.processors, proc)
 	}, b.healthHandler)
+}
+
+func (b *Builder) BuildProcGrpc() {
+	b.exec(true, func(b *Builder) {
+		proc := pgrpc.NewGRPC(
+			b.catalogV1Handler,
+			b.cfg.Processor.Grpc,
+		)
+
+		b.processors = append(b.processors, proc)
+	}, b.catalogV1Handler)
+}
+
+func (b *Builder) BuildProcGateway() {
+	b.exec(true, func(b *Builder) {
+		proc := pgateway.NewGateway(
+			b.cfg.Processor.Gateway,
+			b.cfg.Processor.Grpc,
+		)
+
+		b.processors = append(b.processors, proc)
+	})
 }

@@ -14,85 +14,55 @@ import (
 )
 
 type handler struct {
-	svcCategory service.Category
+	srv service.Category
 }
 
-func NewHandler(svcCategory service.Category) rhandler.Category {
-	return &handler{svcCategory: svcCategory}
+func NewHandler(srv service.Category) rhandler.Category {
+	return &handler{srv: srv}
 }
 
 func (h *handler) Create(w http.ResponseWriter, r *http.Request) {
 	var req entity.RequestCategoryCreate
-
 	if err := binding.ScanAndValidateJSON(r, &req); err != nil {
 		httph.HandleError(w, r, err)
 		return
 	}
 
-	category, err := h.svcCategory.Create(r.Context(), req)
+	category, err := h.srv.Create(r.Context(), req)
 	if err != nil {
 		httph.HandleError(w, r, err)
 		return
 	}
 
-	resp := entity.ResponseCategory{
+	resp := entity.ResponseCategoryCreate{
 		GUID:      category.GUID,
 		Name:      category.Name,
 		CreatedAt: category.CreatedAt,
-		UpdatedAt: category.UpdatedAt,
 	}
 
 	httph.SendJSON(w, http.StatusCreated, resp)
 }
 
-func (h *handler) GetByGUID(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
-	guid, err := uuid.Parse(vars["guid"])
-	if err != nil {
-		httph.HandleError(w, r, err)
-		return
-	}
-
-	category, err := h.svcCategory.GetByGUID(r.Context(), guid)
-	if err != nil {
-		httph.HandleError(w, r, err)
-		return
-	}
-
-	resp := entity.ResponseCategory{
-		GUID:      category.GUID,
-		Name:      category.Name,
-		CreatedAt: category.CreatedAt,
-		UpdatedAt: category.UpdatedAt,
-	}
-
-	httph.SendJSON(w, http.StatusOK, resp)
-}
-
 func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
-	guid, err := uuid.Parse(vars["guid"])
+	guid, err := uuid.Parse(mux.Vars(r)["guid"])
 	if err != nil {
-		httph.HandleError(w, r, err)
+		httph.HandleError(w, r, entity.ErrIncorrectParameters)
 		return
 	}
 
 	var req entity.RequestCategoryUpdate
-
 	if err := binding.ScanAndValidateJSON(r, &req); err != nil {
 		httph.HandleError(w, r, err)
 		return
 	}
 
-	category, err := h.svcCategory.Update(r.Context(), guid, req)
+	category, err := h.srv.Update(r.Context(), guid, req)
 	if err != nil {
 		httph.HandleError(w, r, err)
 		return
 	}
 
-	resp := entity.ResponseCategory{
+	resp := entity.ResponseCategoryUpdate{
 		GUID:      category.GUID,
 		Name:      category.Name,
 		CreatedAt: category.CreatedAt,
@@ -103,33 +73,32 @@ func (h *handler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) Delete(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
-	guid, err := uuid.Parse(vars["guid"])
+	guid, err := uuid.Parse(mux.Vars(r)["guid"])
 	if err != nil {
+		httph.HandleError(w, r, entity.ErrIncorrectParameters)
+		return
+	}
+
+	if err := h.srv.Delete(r.Context(), guid); err != nil {
 		httph.HandleError(w, r, err)
 		return
 	}
 
-	if err := h.svcCategory.Delete(r.Context(), guid); err != nil {
-		httph.HandleError(w, r, err)
-		return
-	}
-
-	httph.SendEmpty(w, http.StatusNoContent)
+	httph.SendEmpty(w, http.StatusOK)
 }
 
 func (h *handler) List(w http.ResponseWriter, r *http.Request) {
-	categories, err := h.svcCategory.List(r.Context())
+	categories, err := h.srv.List(r.Context())
 	if err != nil {
 		httph.HandleError(w, r, err)
 		return
 	}
 
-	resp := make([]entity.ResponseCategory, 0, len(categories))
-
+	resp := entity.ResponseCategoryList{
+		Data: make([]entity.ResponseCategoryListItem, 0, len(categories)),
+	}
 	for _, c := range categories {
-		resp = append(resp, entity.ResponseCategory{
+		resp.Data = append(resp.Data, entity.ResponseCategoryListItem{
 			GUID:      c.GUID,
 			Name:      c.Name,
 			CreatedAt: c.CreatedAt,
