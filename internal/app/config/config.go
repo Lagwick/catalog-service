@@ -10,6 +10,8 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/Lagwick/catalog-service/internal/app/config/section"
+	"github.com/Lagwick/catalog-service/internal/app/constant"
+	msentry "github.com/Lagwick/catalog-service/internal/app/monitor/sentry"
 )
 
 type LoadArgs struct {
@@ -56,10 +58,30 @@ func Load(args LoadArgs) {
 
 	level, err := zerolog.ParseLevel(Root.Monitor.LogLevel)
 	if err != nil {
-		log.Warn().Str("log_level", Root.Monitor.LogLevel).Msg("Unknown log level, using debug")
+		log.Warn().
+			Str("log_level", Root.Monitor.LogLevel).
+			Msg("Unknown log level, using debug")
+
 		level = zerolog.DebugLevel
 	}
 
-	log.Logger = createLogger(level, args.Output)
-	log.Info().Str("log-level", level.String()).Msg("Logger re-initialized with config level")
+	output := args.Output
+
+	w, ok := msentry.Init(
+		Root.Monitor.Sentry,
+		msentry.Options{
+			ServiceName: constant.AppName,
+			Environment: Root.Monitor.Environment,
+			Release:     constant.Version,
+		},
+	)
+	if ok {
+		output = zerolog.MultiLevelWriter(args.Output, w)
+	}
+
+	log.Logger = createLogger(level, output)
+
+	log.Info().
+		Str("log_level", level.String()).
+		Msg("Logger re-initialized with config level")
 }
