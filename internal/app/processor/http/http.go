@@ -12,6 +12,7 @@ import (
 
 	"github.com/Lagwick/catalog-service/internal/app/config/section"
 	rhandler "github.com/Lagwick/catalog-service/internal/app/handler/http"
+	"github.com/Lagwick/catalog-service/internal/app/util"
 	"github.com/Lagwick/catalog-service/internal/pkg/http/httph"
 	"github.com/Lagwick/catalog-service/internal/pkg/http/mzerolog"
 )
@@ -29,7 +30,11 @@ func NewHTTP(
 ) *httpProc {
 	r := mux.NewRouter()
 	r.Use(httph.NewErrorMiddleware())
-	r.Use(mzerolog.NewMiddleware())
+	r.Use(
+		mzerolog.NewMiddleware(
+			mzerolog.WithSkipper(util.IsFilteredHttpRoute),
+		),
+	)
 	r.NotFoundHandler = http.HandlerFunc(handlerNotFound)
 
 	vGenericRegHealthCheck(r, hHealth)

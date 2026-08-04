@@ -30,6 +30,7 @@ func (m *middleware) Callback(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 
 		err := httph.ErrorGet(r)
+		statusCode := httph.ErrorGetStatusCode(r)
 		execTime := time.Since(start)
 
 		if m.fromOptions.skipper(r) {
@@ -53,6 +54,7 @@ func (m *middleware) Callback(next http.Handler) http.Handler {
 
 		ev.Err(err)
 		ev.Ctx(r.Context())
+		ev.Int("http_status_code", statusCode)
 		ev.Str("exec_time", execTime.String())
 		ev.Str("client_ip", r.RemoteAddr)
 		ev.Msg(mb.String())
