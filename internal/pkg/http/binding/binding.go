@@ -1,6 +1,10 @@
 package binding
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/Lagwick/catalog-service/internal/app/entity"
+)
 
 const (
 	MIMEJSON              = "application/json"
@@ -34,5 +38,13 @@ func validate(obj any) error {
 	if Validator == nil {
 		return nil
 	}
-	return Validator.ValidateStruct(obj)
+
+	if err := Validator.ValidateStruct(obj); err != nil {
+		return &entity.AppError{
+			Kind:    entity.KindInvalidArgument,
+			Message: err.Error(),
+		}
+	}
+
+	return nil
 }
