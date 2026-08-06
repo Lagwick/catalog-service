@@ -3,6 +3,8 @@ package httph
 import (
 	"context"
 	"net/http"
+
+	"go.opentelemetry.io/otel/trace"
 )
 
 type contextKeyError struct{}
@@ -54,8 +56,15 @@ func ErrorGet(r *http.Request) error {
 	return errorGet(r.Context())
 }
 
-func ErrorApply(r *http.Request, err error) {
-	errorApply(r.Context(), err)
+func ErrorApply(ctx context.Context, err error) {
+	v, ok := ctx.Value(contextKeyError{}).(*contextValueError)
+	if ok && v != nil {
+		v.err = err
+	}
+	
+	if err != nil {
+		trace.SpanFromContext(ctx).RecordError(err)
+	}
 }
 
 func ErrorApplyStatusCode(r *http.Request, statusCode int) {

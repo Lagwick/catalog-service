@@ -27,15 +27,19 @@ func NewHTTP(
 	hCategory rhandler.Category,
 	hProduct rhandler.Product,
 	cfg section.ProcessorWebServer,
+	middlewares []httph.Middleware,
 ) *httpProc {
 	r := mux.NewRouter()
-	r.Use(httph.NewErrorMiddleware())
+	r.NotFoundHandler = http.HandlerFunc(handlerNotFound)
+
+	r.Use(middlewaresToGorilla(middlewares)...)
+
 	r.Use(
+		httph.NewErrorMiddleware(),
 		mzerolog.NewMiddleware(
 			mzerolog.WithSkipper(util.IsFilteredHttpRoute),
 		),
 	)
-	r.NotFoundHandler = http.HandlerFunc(handlerNotFound)
 
 	vGenericRegHealthCheck(r, hHealth)
 

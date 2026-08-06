@@ -32,7 +32,7 @@ func sendError(w http.ResponseWriter, status int, err error) {
 }
 
 func HandleError(w http.ResponseWriter, r *http.Request, err error) {
-	ErrorApply(r, err)
+	ErrorApply(r.Context(), err)
 
 	var hc httpCoder
 	if errors.As(err, &hc) {
