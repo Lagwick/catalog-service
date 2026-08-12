@@ -12,6 +12,7 @@ import (
 	"github.com/Lagwick/catalog-service/internal/app/config/section"
 	"github.com/Lagwick/catalog-service/internal/app/constant"
 	msentry "github.com/Lagwick/catalog-service/internal/app/monitor/sentry"
+	mtracelog "github.com/Lagwick/catalog-service/internal/app/monitor/tracelog"
 )
 
 type LoadArgs struct {
@@ -22,6 +23,7 @@ type LoadArgs struct {
 func createLogger(level zerolog.Level, output io.Writer) zerolog.Logger {
 	return zerolog.New(output).
 		Level(level).
+		Hook(mtracelog.Hook{}).
 		With().
 		Timestamp().
 		Logger()
