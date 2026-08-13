@@ -12,6 +12,7 @@ import (
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
+	"github.com/uptrace/bun/extra/bunotel"
 	"github.com/uptrace/bun/migrate"
 
 	"github.com/Lagwick/catalog-service/internal/app/config/section"
@@ -59,6 +60,11 @@ func NewClient(ctx context.Context, cfg section.RepositoryPostgres) (*Client, er
 
 	bunDB := bun.NewDB(sqlDB, pgdialect.New(), bun.WithDiscardUnknownColumns())
 
+	bunDB.AddQueryHook(bunotel.NewQueryHook(
+		bunotel.WithDBName(cfg.Name),
+		bunotel.WithFormattedQueries(true),
+	))
+
 	pingCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 
@@ -69,7 +75,7 @@ func NewClient(ctx context.Context, cfg section.RepositoryPostgres) (*Client, er
 	log.Printf("PostgreSQL connection established")
 
 	return &Client{
-		_bunDB:   newTxInjector(bunDB),
+		_bunDB:   newTxInjector(bunDB, sqlDB),
 		rawBunDB: bunDB,
 		cfg:      cfg,
 	}, nil
