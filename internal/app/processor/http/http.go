@@ -42,6 +42,7 @@ func NewHTTP(
 	)
 
 	vGenericRegHealthCheck(r, hHealth)
+	vGenericRegPprof(r)
 
 	rV1 := r.PathPrefix("/v1").Subrouter()
 	v1RegCategoryHandler(rV1, hCategory)
