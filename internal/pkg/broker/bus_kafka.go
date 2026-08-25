@@ -43,7 +43,7 @@ func NewBus[T any](client *KafkaClient, c codec.Codec[T], topic, consumerGroup s
 	}
 	group := Coalesce(consumerGroup, client.DefaultConsumerGroup())
 	if group == "" {
-		return nil, fmt.Errorf(("broker: consumer group is empty"))
+		return nil, fmt.Errorf("broker: consumer group is empty")
 	}
 	return &kafkaBus[T]{
 		client:        client,
